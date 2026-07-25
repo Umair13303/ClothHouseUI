@@ -1,0 +1,576 @@
+
+// Include theming for Angular Material with `mat.theme()`.
+// This Sass mixin will define CSS variables that are used for styling Angular Material
+// components according to the Material 3 design spec.
+// Learn more about theming and how to use it for your application's
+// custom components at https://material.angular.dev/guide/theming
+@use '@angular/material' as mat;
+
+// -----------------------------------------------------------------------
+// ClothPOS 2026 theme — Material 3, indigo/violet primary, light + dark.
+// Light tokens live on `html`; ThemeService toggles a `.dark-theme` class
+// onto <html>, which re-emits the same M3 token set with a dark color
+// scheme (below) and is layered with its own --color-* overrides further
+// down this file.
+// -----------------------------------------------------------------------
+html {
+  @include mat.theme((
+    color: (
+      theme-type: light,
+      primary: mat.$violet-palette,
+      tertiary: mat.$violet-palette,
+    ),
+    typography: (
+      plain-family: 'Public Sans',
+      brand-family: 'Public Sans',
+    ),
+    density: -2,
+  ));
+
+  // Soften Material's default corner tokens for a more contemporary feel.
+  --mat-sys-corner-small: 8px;
+  --mat-sys-corner-medium: 10px;
+  --mat-sys-corner-large: 14px;
+  --mat-sys-corner-extra-large: 20px;
+
+  // Pin Material's system color tokens to an exact deep indigo/violet,
+  // rather than the nearest built-in M3 tonal palette (which skews
+  // lighter/more washed out).
+  --mat-sys-primary: #4f46e5;
+  --mat-sys-on-primary: #ffffff;
+  --mat-sys-primary-container: #e0e7ff;
+  --mat-sys-on-primary-container: #3730a3;
+  --mat-sys-tertiary: #4f46e5;
+  --mat-sys-on-tertiary: #ffffff;
+
+  // Outline fields default to fairly low-contrast borders/labels — bump both
+  // so fields and dropdowns read clearly at a glance instead of blending
+  // into the page.
+  --mat-form-field-outlined-outline-color: #cbd5e1;
+  --mat-form-field-outlined-hover-outline-color: #94a3b8;
+  --mat-form-field-outlined-focus-outline-color: var(--mat-sys-primary);
+  --mat-form-field-outlined-label-text-color: #475569;
+  --mat-form-field-outlined-hover-label-text-color: #334155;
+  --mat-form-field-outlined-focus-label-text-color: var(--mat-sys-primary);
+  --mat-form-field-outlined-label-text-weight: 500;
+  --mat-select-enabled-arrow-color: #64748b;
+  --mat-select-focused-arrow-color: var(--mat-sys-primary);
+
+  // M3's default button shape is a full pill/stadium — reads as dated for a
+  // dense admin/POS surface. Flatten to a small rectangular radius and trim
+  // the label size/weight/padding to match the rest of the compact UI.
+  --mat-button-filled-container-shape: 8px;
+  --mat-button-outlined-container-shape: 8px;
+  --mat-button-protected-container-shape: 8px;
+  --mat-button-text-container-shape: 8px;
+  --mat-button-tonal-container-shape: 8px;
+  --mat-button-filled-container-height: 36px;
+  --mat-button-outlined-container-height: 36px;
+  --mat-button-protected-container-height: 36px;
+  --mat-button-text-container-height: 36px;
+  --mat-button-tonal-container-height: 36px;
+  --mat-button-filled-horizontal-padding: 16px;
+  --mat-button-outlined-horizontal-padding: 16px;
+  --mat-button-protected-horizontal-padding: 16px;
+  --mat-button-tonal-horizontal-padding: 16px;
+
+  @each $variant in filled, outlined, protected, text, tonal {
+    --mat-button-#{$variant}-label-text-size: 13px;
+    --mat-button-#{$variant}-label-text-weight: 600;
+  }
+
+  // Outline text fields default to a fairly tall container with generous
+  // internal padding — tighten both, and drop the always-reserved
+  // hint/error subscript row since this app never renders mat-error/mat-hint.
+  --mat-form-field-container-height: 40px;
+  --mat-form-field-container-vertical-padding: 8px;
+}
+
+// Dark mode — same M3 token set, regenerated with a dark color scheme and
+// pinned to lighter indigo/violet tones so text/icons stay legible on dark
+// surfaces. Scoped to `.dark-theme` (applied to <html> by ThemeService),
+// which — being a class selector — wins the cascade over the plain `html`
+// block above regardless of source order.
+.dark-theme {
+  color-scheme: dark;
+
+  @include mat.theme((
+    color: (
+      theme-type: dark,
+      primary: mat.$violet-palette,
+      tertiary: mat.$violet-palette,
+    ),
+    typography: (
+      plain-family: 'Public Sans',
+      brand-family: 'Public Sans',
+    ),
+    density: -2,
+  ));
+
+  --mat-sys-primary: #a5b4fc;
+  --mat-sys-on-primary: #1e1b4b;
+  --mat-sys-primary-container: #4338ca;
+  --mat-sys-on-primary-container: #e0e7ff;
+  --mat-sys-tertiary: #a5b4fc;
+  --mat-sys-on-tertiary: #1e1b4b;
+
+  --mat-form-field-outlined-outline-color: #3f3b5c;
+  --mat-form-field-outlined-hover-outline-color: #55507a;
+  --mat-form-field-outlined-focus-outline-color: var(--mat-sys-primary);
+  --mat-form-field-outlined-label-text-color: #a29fc2;
+  --mat-form-field-outlined-hover-label-text-color: #cbc7e8;
+  --mat-form-field-outlined-focus-label-text-color: var(--mat-sys-primary);
+  --mat-select-enabled-arrow-color: #a29fc2;
+  --mat-select-focused-arrow-color: var(--mat-sys-primary);
+}
+
+// Angular Material's M3 system-token API doesn't vary a button's container
+// color by color="warn"/"accent" the way the old M2 API did — every
+// mat-flat/icon-button reads the same --mat-button-filled-container-color
+// (aliased to --mat-sys-primary) regardless of its color input. Without this,
+// every "delete" affordance in the app (icon buttons, dialog actions) renders
+// in the primary violet instead of red. Scope the danger color explicitly.
+.mat-mdc-unelevated-button.mat-warn, .mat-mdc-raised-button.mat-warn {
+  --mat-button-filled-container-color: var(--color-danger);
+}
+
+.mat-mdc-outlined-button.mat-warn {
+  --mat-button-outlined-label-text-color: var(--color-danger);
+}
+
+.mat-mdc-icon-button.mat-warn {
+  --mat-icon-button-icon-color: var(--color-danger);
+}
+
+// Row-level actions (edit/delete/view-ledger/print-link) — every list screen
+// wraps these in a `.row-actions` cell, so this one rule covers all of them
+// instead of touching each template. Shrinks the oversized default icon
+// button and gives each action a small tinted-circle identity: blue for
+// edit, red for delete (color="warn" already sets the icon color above —
+// this just adds the background), teal for the plain link actions
+// (view ledger, print barcode, view variants).
+.row-actions {
+  .mat-mdc-icon-button, a.mat-mdc-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    margin: 0 2px;
+    line-height: 1;
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+    }
+
+    .mat-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      line-height: 16px;
+    }
+  }
+
+  .mat-mdc-icon-button:not(.mat-warn) {
+    background: var(--color-primary-tint);
+    color: var(--color-primary);
+
+    &:hover {
+      background: var(--color-primary);
+      color: #fff;
+    }
+  }
+
+  .mat-mdc-icon-button.mat-warn {
+    background: var(--color-danger-bg);
+
+    &:hover {
+      background: var(--color-danger);
+      --mat-icon-button-icon-color: #fff;
+    }
+  }
+
+  a.mat-mdc-icon-button {
+    background: var(--color-info-bg);
+    color: var(--color-info);
+
+    &:hover {
+      background: var(--color-info);
+      color: #fff;
+    }
+  }
+}
+
+.mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+// The subscript wrapper above used to be what visually separated stacked
+// fields outside a .form-grid (e.g. POS's summary panel, the ledger page's
+// party picker) — hiding it left those layouts with zero gap between fields,
+// so a field's floating label overlaps whatever sits right below it. Grid
+// layouts get their spacing from .form-grid's own `gap` regardless, so this
+// is additive there, not a double-gap problem.
+mat-form-field {
+  margin-bottom: 6px;
+}
+
+body {
+  // Theme is driven by the `.dark-theme` class ThemeService toggles onto
+  // <html> (see above); `color-scheme` here is the light-mode default and
+  // is overridden by `.dark-theme` for dark.
+  color-scheme: light;
+
+  // Set a default background, font and text colors for the application using
+  // Angular Material's system-level CSS variables. Learn more about these
+  // variables at https://material.angular.dev/guide/system-variables
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+
+  // Reset the user agent margin.
+  margin: 0;
+}
+:root {
+  --color-primary: #4f46e5;
+  --color-primary-light: #818cf8;
+  --color-primary-dark: #4338ca;
+  --color-primary-tint: #e0e7ff;
+  --color-accent: #ff9f43;
+  --color-accent-light: #ffbe7d;
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f1f5f9;
+  --color-border: #e2e8f0;
+  --color-text: #1e293b;
+  --color-text-muted: #64748b;
+  --color-danger: #ea5455;
+  --color-danger-bg: #fbe9e9;
+  --color-success: #28c76f;
+  --color-success-bg: #e6f8ee;
+  --color-warning: #ff9f43;
+  --color-warning-bg: #fff2e5;
+  --color-info: #00b4cc;
+  --color-info-bg: #e0fbff;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow-sm: 0 1px 3px rgba(30, 41, 59, 0.06);
+  --shadow-md: 0 3px 10px rgba(30, 41, 59, 0.08);
+  --shadow-lg: 0 10px 28px rgba(30, 41, 59, 0.14);
+  --shadow-primary: 0 4px 12px rgba(79, 70, 229, 0.28);
+}
+
+// Dark-mode custom design tokens — every `.card`, `.chip`, table, stat tile,
+// row-action etc. below is built on these var()s, so overriding them here is
+// enough to re-skin the entire app for dark mode without touching any
+// individual component.
+.dark-theme {
+  --color-primary: #a5b4fc;
+  --color-primary-light: #c7d2fe;
+  --color-primary-dark: #818cf8;
+  --color-primary-tint: #322f63;
+  --color-accent: #ffb066;
+  --color-accent-light: #ffcb94;
+  --color-bg: #121026;
+  --color-surface: #1c1a35;
+  --color-surface-alt: #262444;
+  --color-border: #34305c;
+  --color-text: #e9e7f7;
+  --color-text-muted: #a7a3c9;
+  --color-danger: #f87171;
+  --color-danger-bg: #402138;
+  --color-success: #4ade80;
+  --color-success-bg: #1c3a32;
+  --color-warning: #fbbf24;
+  --color-warning-bg: #3d2f18;
+  --color-info: #38bdf8;
+  --color-info-bg: #163244;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 3px 10px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.5);
+  --shadow-primary: 0 4px 14px rgba(165, 180, 252, 0.25);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Public Sans', 'Segoe UI', Roboto, Arial, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.btn {
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 9px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+  box-shadow: var(--shadow-primary);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.btn-outline:hover {
+  background: var(--color-surface-alt);
+  border-color: var(--color-primary-light);
+}
+
+.btn-danger {
+  background: var(--color-danger);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-danger:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+input[type="text"], input[type="number"], input[type="password"], select {
+  padding: 9px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  width: 100%;
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus, select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+html, body { height: 100%; }
+
+// Cross-fade surface/text colors when ThemeService flips the dark-theme
+// class, instead of every page snapping instantly between palettes.
+html, body, .card, .mat-mdc-dialog-surface, mat-toolbar, .sidebar, table td, table th {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+// Materio-style pill status chips. Additive utility classes — opt in from any
+// template with e.g. class="chip chip-success".
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.chip-primary { background: var(--color-primary-tint); color: var(--color-primary); }
+.chip-success { background: var(--color-success-bg); color: var(--color-success); }
+.chip-warning { background: var(--color-warning-bg); color: var(--color-warning); }
+.chip-danger { background: var(--color-danger-bg); color: var(--color-danger); }
+.chip-info { background: var(--color-info-bg); color: var(--color-info); }
+.chip-neutral { background: var(--color-surface-alt); color: var(--color-text-muted); }
+
+// Shared table look for pages that don't define their own th/td rules.
+// Dense/functional: tighter row height than Material's comfortable default,
+// sticky header so long lists stay scannable while scrolling.
+table {
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+    background: var(--color-surface-alt);
+    border-bottom: 2px solid var(--color-border);
+  }
+
+  td {
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 13.5px;
+    transition: background-color 0.12s ease;
+  }
+
+  // Faint zebra striping — subtle enough to read as texture, not stripes,
+  // and distinct from the (stronger) hover tint so hover still stands out.
+  tbody tr:nth-child(even) td {
+    background: rgba(37, 99, 235, 0.025);
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr:hover td {
+    background: var(--color-surface-alt);
+  }
+}
+
+// Dense 2-column form layout — replaces single stacked-column forms.
+// Fields spanning both columns (e.g. long text areas) opt in with .span-2.
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 16px;
+  max-width: 640px;
+
+  .span-2 { grid-column: 1 / -1; }
+}
+
+// Dashboard-style KPI tiles.
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.stat-tile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius);
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+
+    mat-icon {
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+    }
+  }
+
+  &:hover .stat-icon {
+    transform: scale(1.08);
+  }
+
+  .stat-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin: 0 0 2px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--color-text);
+    line-height: 1.2;
+  }
+}
+
+.stat-tile--primary .stat-icon { background: var(--color-primary-tint); color: var(--color-primary); }
+.stat-tile--danger .stat-icon { background: var(--color-danger-bg); color: var(--color-danger); }
+.stat-tile--warning .stat-icon { background: var(--color-warning-bg); color: var(--color-warning); }
+.stat-tile--success .stat-icon { background: var(--color-success-bg); color: var(--color-success); }
+
+// Toast notifications (NotificationService) — panelClass targets the CDK
+// overlay pane, which lives outside any component's view encapsulation, so
+// this has to be global rather than colocated with the service.
+.snackbar-success, .snackbar-error {
+  border-radius: var(--radius-sm);
+
+  .mdc-snackbar__surface {
+    border-radius: var(--radius-sm) !important;
+  }
+}
+
+.snackbar-success .mdc-snackbar__surface {
+  background: var(--color-success) !important;
+}
+
+.snackbar-error .mdc-snackbar__surface {
+  background: var(--color-danger) !important;
+}
+
+.snackbar-success .mdc-snackbar__label,
+.snackbar-error .mdc-snackbar__label {
+  color: #fff !important;
+}
+
+.snackbar-success .mat-mdc-snack-bar-action,
+.snackbar-error .mat-mdc-snack-bar-action {
+  color: #fff !important;
+  opacity: 0.85;
+}
+
+// MatDialog surfaces — match the app's card language (flat shadow, shared radius).
+.mat-mdc-dialog-surface {
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+@media print {
+  mat-sidenav, mat-toolbar, .no-print {
+    display: none !important;
+  }
+  mat-sidenav-content {
+    margin-left: 0 !important;
+  }
+}

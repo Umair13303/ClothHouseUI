@@ -1,0 +1,176 @@
+<div class="page">
+  <h1>Reports</h1>
+
+  <div class="card filter-card">
+    <mat-form-field appearance="outline">
+      <mat-label>From</mat-label>
+      <input matInput type="date" [(ngModel)]="fromDate" name="fromDate" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>To</mat-label>
+      <input matInput type="date" [(ngModel)]="toDate" name="toDate" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Group By</mat-label>
+      <mat-select [(ngModel)]="groupByMonth" name="groupByMonth">
+        <mat-option [value]="false">Day</mat-option>
+        <mat-option [value]="true">Month</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <button mat-flat-button color="primary" (click)="loadAll()">Apply</button>
+  </div>
+
+  <mat-tab-group>
+    <mat-tab label="Sales">
+      <div class="tab-content">
+        <table>
+          <thead><tr><th>Period</th><th>Invoices</th><th>Gross Sales</th><th>Discount</th><th>Net Sales</th></tr></thead>
+          <tbody>
+            @for (r of sales(); track r.periodLabel) {
+              <tr><td>{{ r.periodLabel }}</td><td>{{ r.invoiceCount }}</td><td>{{ r.grossSales | number: '1.0-2' }}</td><td>{{ r.discount | number: '1.0-2' }}</td><td>{{ r.netSales | number: '1.0-2' }}</td></tr>
+            } @empty { <tr><td colspan="5" class="empty-state">No sales in this period.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Purchases">
+      <div class="tab-content">
+        <table>
+          <thead><tr><th>Period</th><th>Invoices</th><th>Total Purchases</th></tr></thead>
+          <tbody>
+            @for (r of purchases(); track r.periodLabel) {
+              <tr><td>{{ r.periodLabel }}</td><td>{{ r.invoiceCount }}</td><td>{{ r.totalPurchases | number: '1.0-2' }}</td></tr>
+            } @empty { <tr><td colspan="3" class="empty-state">No purchases in this period.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Profit &amp; Loss">
+      <div class="tab-content">
+        @if (profitAndLoss(); as pl) {
+          <div class="pl-grid">
+            <div><span>Total Sales</span><strong>{{ pl.totalSales | number: '1.0-2' }}</strong></div>
+            <div><span>Cost of Goods Sold</span><strong>{{ pl.totalCostOfGoodsSold | number: '1.0-2' }}</strong></div>
+            <div><span>Gross Profit</span><strong>{{ pl.grossProfit | number: '1.0-2' }}</strong></div>
+            <div><span>Total Expenses</span><strong>{{ pl.totalExpenses | number: '1.0-2' }}</strong></div>
+            <div class="net"><span>Net Profit</span><strong>{{ pl.netProfit | number: '1.0-2' }}</strong></div>
+          </div>
+          <p class="hint">Cost of goods sold is approximated using each variant's current last purchase price.</p>
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Stock">
+      <div class="tab-content">
+        <mat-form-field appearance="outline" class="small-field">
+          <mat-label>Group By</mat-label>
+          <mat-select [(ngModel)]="stockGroupBy" name="stockGroupBy" (ngModelChange)="loadStock()">
+            <mat-option value="category">Category</mat-option>
+            <mat-option value="brand">Brand</mat-option>
+            <mat-option value="fabric">Fabric</mat-option>
+            <mat-option value="product">Product</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <table>
+          <thead><tr><th>{{ stockGroupBy | titlecase }}</th><th>Total Qty</th><th>Cost Value</th><th>Sale Value</th></tr></thead>
+          <tbody>
+            @for (r of stock(); track r.groupName) {
+              <tr><td>{{ r.groupName }}</td><td>{{ r.totalQuantity }}</td><td>{{ r.totalCostValue | number: '1.0-2' }}</td><td>{{ r.totalSaleValue | number: '1.0-2' }}</td></tr>
+            } @empty { <tr><td colspan="4" class="empty-state">No stock data.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Low Stock">
+      <div class="tab-content">
+        <table>
+          <thead><tr><th>Barcode</th><th>Product</th><th>Design #</th><th>Current Stock</th><th>Reorder Level</th></tr></thead>
+          <tbody>
+            @for (r of lowStock(); track r.productVariantId) {
+              <tr class="danger-row"><td class="mono">{{ r.barcode }}</td><td>{{ r.productName }}</td><td>{{ r.designNumber }}</td><td>{{ r.currentStock }}</td><td>{{ r.reorderLevel }}</td></tr>
+            } @empty { <tr><td colspan="5" class="empty-state">Nothing below reorder level.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Customer Outstanding">
+      <div class="tab-content">
+        <table>
+          <thead><tr><th>Customer</th><th>Phone</th><th>Balance</th></tr></thead>
+          <tbody>
+            @for (r of customerOutstanding(); track r.partyId) {
+              <tr><td>{{ r.partyName }}</td><td>{{ r.phone ?? '—' }}</td><td class="balance-due">{{ r.balance | number: '1.0-2' }}</td></tr>
+            } @empty { <tr><td colspan="3" class="empty-state">No outstanding balances.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Vendor Outstanding">
+      <div class="tab-content">
+        <table>
+          <thead><tr><th>Vendor</th><th>Phone</th><th>Balance</th></tr></thead>
+          <tbody>
+            @for (r of vendorOutstanding(); track r.partyId) {
+              <tr><td>{{ r.partyName }}</td><td>{{ r.phone ?? '—' }}</td><td class="balance-due">{{ r.balance | number: '1.0-2' }}</td></tr>
+            } @empty { <tr><td colspan="3" class="empty-state">No outstanding balances.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Top Selling">
+      <div class="tab-content">
+        <table>
+          <thead><tr><th>Barcode</th><th>Product</th><th>Design #</th><th>Qty Sold</th><th>Revenue</th></tr></thead>
+          <tbody>
+            @for (r of topSelling(); track r.productVariantId) {
+              <tr><td class="mono">{{ r.barcode }}</td><td>{{ r.productName }}</td><td>{{ r.designNumber }}</td><td>{{ r.quantitySold }}</td><td>{{ r.revenue | number: '1.0-2' }}</td></tr>
+            } @empty { <tr><td colspan="5" class="empty-state">No sales in this period.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Slow Moving">
+      <div class="tab-content">
+        <mat-form-field appearance="outline" class="small-field">
+          <mat-label>Days since last sale</mat-label>
+          <input matInput type="number" [(ngModel)]="slowMovingDays" name="slowMovingDays" (change)="loadSlowMoving()" />
+        </mat-form-field>
+        <table>
+          <thead><tr><th>Barcode</th><th>Product</th><th>Design #</th></tr></thead>
+          <tbody>
+            @for (r of slowMoving(); track r.productVariantId) {
+              <tr><td class="mono">{{ r.barcode }}</td><td>{{ r.productName }}</td><td>{{ r.designNumber }}</td></tr>
+            } @empty { <tr><td colspan="3" class="empty-state">Nothing slow-moving.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Cash Book">
+      <div class="tab-content">
+        <table>
+          <thead><tr><th>Date</th><th>Description</th><th>Source</th><th>Cash In</th><th>Cash Out</th><th>Running Balance</th></tr></thead>
+          <tbody>
+            @for (r of cashBook(); track r.date + r.description) {
+              <tr>
+                <td>{{ r.date | date: 'mediumDate' }}</td>
+                <td>{{ r.description }}</td>
+                <td>{{ r.sourceDocumentType }}</td>
+                <td>{{ r.cashIn > 0 ? (r.cashIn | number: '1.0-2') : '—' }}</td>
+                <td>{{ r.cashOut > 0 ? (r.cashOut | number: '1.0-2') : '—' }}</td>
+                <td>{{ r.runningBalance | number: '1.0-2' }}</td>
+              </tr>
+            } @empty { <tr><td colspan="6" class="empty-state">No cash movements in this period.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

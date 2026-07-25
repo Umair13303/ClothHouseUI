@@ -1,0 +1,25 @@
+<div class="login-page">
+  <form class="card login-card" (ngSubmit)="submit()">
+    <div class="login-badge"><mat-icon>storefront</mat-icon></div>
+    <h1>ClothPOS</h1>
+    <p class="subtitle">Sign in to continue</p>
+
+    @if (errorMessage()) {
+      <div class="alert">{{ errorMessage() }}</div>
+    }
+
+    <div class="form-row">
+      <label for="userName">Username or Email</label>
+      <input id="userName" type="text" name="userName" [(ngModel)]="userName" required autofocus />
+    </div>
+
+    <div class="form-row">
+      <label for="password">Password</label>
+      <input id="password" type="password" name="password" [(ngModel)]="password" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary" [disabled]="loading()">
+      {{ loading() ? 'Signing in…' : 'Sign In' }}
+    </button>
+  </form>
+</div>

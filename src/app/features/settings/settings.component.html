@@ -1,0 +1,112 @@
+<div class="page">
+  <h1>Settings</h1>
+
+  <div class="settings-grid">
+    <div class="card">
+      <h2>Store Details</h2>
+
+      @if (storeError()) {
+        <div class="alert">{{ storeError() }}</div>
+      }
+      @if (storeMessage()) {
+        <div class="alert success">{{ storeMessage() }}</div>
+      }
+
+      @if (store(); as s) {
+        <form (ngSubmit)="saveStore()" class="form-grid">
+          <div class="code-badge span-2">Store Code: {{ s.code }}</div>
+
+          <mat-form-field appearance="outline" class="span-2">
+            <mat-label>Store Name</mat-label>
+            <input matInput [(ngModel)]="storeForm.name" name="storeName" required />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="span-2">
+            <mat-label>Address</mat-label>
+            <input matInput [(ngModel)]="storeForm.address" name="storeAddress" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="span-2">
+            <mat-label>Phone</mat-label>
+            <input matInput [(ngModel)]="storeForm.phone" name="storePhone" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="span-2">
+            <mat-label>Receipt Paper Width</mat-label>
+            <mat-select [(ngModel)]="storeForm.receiptPaperWidthMm" name="receiptPaperWidthMm">
+              <mat-option [value]="80">80mm (standard)</mat-option>
+              <mat-option [value]="58">58mm (compact)</mat-option>
+            </mat-select>
+            <mat-hint>Controls the print size of the POS thermal receipt.</mat-hint>
+          </mat-form-field>
+
+          <div class="form-actions span-2">
+            <button type="submit" mat-flat-button color="primary" [disabled]="storeSaving()">
+              <mat-icon>save</mat-icon>
+              Save Store Details
+            </button>
+          </div>
+        </form>
+      } @else {
+        <p>Loading…</p>
+      }
+    </div>
+
+    <div class="card">
+      <h2>Change Password</h2>
+
+      @if (passwordError()) {
+        <div class="alert">{{ passwordError() }}</div>
+      }
+      @if (passwordMessage()) {
+        <div class="alert success">{{ passwordMessage() }}</div>
+      }
+
+      <form (ngSubmit)="changePassword()" class="form-grid">
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Current Password</mat-label>
+          <input matInput type="password" [(ngModel)]="passwordForm.currentPassword" name="currentPassword" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>New Password</mat-label>
+          <input matInput type="password" [(ngModel)]="passwordForm.newPassword" name="newPassword" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Confirm New Password</mat-label>
+          <input matInput type="password" [(ngModel)]="passwordForm.confirmPassword" name="confirmPassword" required />
+        </mat-form-field>
+
+        <div class="form-actions span-2">
+          <button type="submit" mat-flat-button color="primary" [disabled]="passwordSaving()">
+            <mat-icon>lock_reset</mat-icon>
+            Change Password
+          </button>
+        </div>
+      </form>
+    </div>
+
+    @if (menuService.canView('roles-permissions')) {
+      <div class="card">
+        <h2>Roles &amp; Permissions</h2>
+        <p>Manage roles and which menus each role can view, add, edit or delete.</p>
+        <a mat-flat-button color="primary" routerLink="/settings/roles">
+          <mat-icon>admin_panel_settings</mat-icon>
+          Manage Roles &amp; Permissions
+        </a>
+      </div>
+    }
+
+    @if (menuService.canView('users')) {
+      <div class="card">
+        <h2>Users</h2>
+        <p>Add new user accounts and assign them a role.</p>
+        <a mat-flat-button color="primary" routerLink="/settings/users">
+          <mat-icon>manage_accounts</mat-icon>
+          Manage Users
+        </a>
+      </div>
+    }
+  </div>
+</div>

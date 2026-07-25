@@ -1,0 +1,103 @@
+<div class="page">
+  <h1>Goods Receive</h1>
+  <p class="hint">Stock only increases once goods are received against a purchase invoice — creating the invoice alone does not move stock.</p>
+
+  <div class="card">
+    <div class="header-row">
+      <mat-form-field appearance="outline" class="invoice-field">
+        <mat-label>Purchase Invoice</mat-label>
+        <mat-select [ngModel]="selectedInvoice()?.id" (ngModelChange)="onInvoiceChange($event)" name="invoiceId">
+          @for (inv of pendingInvoices(); track inv.id) {
+            <mat-option [value]="inv.id">{{ inv.invoiceNumber }} — {{ inv.vendorName }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="date-field">
+        <mat-label>Receive Date</mat-label>
+        <input matInput type="date" [(ngModel)]="receiveDate" name="receiveDate" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="remarks-field">
+        <mat-label>Remarks</mat-label>
+        <input matInput [(ngModel)]="remarks" name="remarks" />
+      </mat-form-field>
+    </div>
+
+    @if (selectedInvoice(); as inv) {
+      @if (receiveLines.length > 0) {
+        <table>
+          <thead>
+            <tr>
+              <th>Barcode</th>
+              <th>Product</th>
+              <th>Design #</th>
+              <th>Ordered</th>
+              <th>Already Received</th>
+              <th>Pending</th>
+              <th>Receive Now</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (l of receiveLines; track l.id) {
+              <tr>
+                <td class="mono">{{ l.barcode }}</td>
+                <td>{{ l.productName }}</td>
+                <td>{{ l.designNumber }}</td>
+                <td>{{ l.quantity }}</td>
+                <td>{{ l.quantityReceived }}</td>
+                <td>{{ l.quantity - l.quantityReceived }}</td>
+                <td>
+                  <input type="number" [(ngModel)]="l.receiveNow" [max]="l.quantity - l.quantityReceived" min="0" class="qty-input" />
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <p class="empty-state">This invoice is fully received.</p>
+      }
+    } @else {
+      <p class="empty-state">Select a pending purchase invoice above.</p>
+    }
+
+    <div class="form-actions">
+      <button mat-flat-button color="primary" [disabled]="saving() || receiveLines.length === 0" (click)="submit()">
+        <mat-icon>inventory</mat-icon>
+        Post Goods Receive
+      </button>
+    </div>
+  </div>
+
+  <h2>Recent Goods Receive Notes</h2>
+  <div class="card">
+    @if (loadingHistory()) {
+      <p>Loading…</p>
+    } @else if (history().length === 0) {
+      <p class="empty-state">No goods receive notes yet.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Receive #</th>
+            <th>Date</th>
+            <th>Purchase Invoice</th>
+            <th>Status</th>
+            <th>Items</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (h of history(); track h.id) {
+            <tr>
+              <td class="mono">{{ h.receiveNumber }}</td>
+              <td>{{ h.receiveDate | date: 'mediumDate' }}</td>
+              <td>{{ h.purchaseInvoiceNumber }}</td>
+              <td>{{ statusLabel(h.status) }}</td>
+              <td>{{ h.items.length }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

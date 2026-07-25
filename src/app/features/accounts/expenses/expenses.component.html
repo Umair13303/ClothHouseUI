@@ -1,0 +1,82 @@
+<div class="page">
+  <h1>Expenses</h1>
+  <p class="hint-top">Need a new category first? Manage them under Masters → Expense Categories.</p>
+
+  <div class="card form-card">
+    <form (ngSubmit)="submit()" class="form-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Category</mat-label>
+        <mat-select [(ngModel)]="categoryId" name="categoryId" required>
+          @for (c of categories(); track c.id) {
+            <mat-option [value]="c.id">{{ c.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Method</mat-label>
+        <mat-select [(ngModel)]="method" name="method">
+          @for (m of paymentMethods; track m.value) {
+            <mat-option [value]="m.value">{{ m.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Date</mat-label>
+        <input matInput type="date" [(ngModel)]="expenseDate" name="expenseDate" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Amount</mat-label>
+        <input matInput type="number" [(ngModel)]="amount" name="amount" required min="0" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="span-2">
+        <mat-label>Remarks</mat-label>
+        <input matInput [(ngModel)]="remarks" name="remarks" />
+      </mat-form-field>
+
+      <div class="form-actions span-2">
+        <button type="submit" mat-flat-button color="primary" [disabled]="saving()">
+          <mat-icon>payments</mat-icon>
+          Record Expense
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <h2>Recent Expenses</h2>
+  <div class="card">
+    @if (loadingHistory()) {
+      <p>Loading…</p>
+    } @else if (expenses().length === 0) {
+      <p class="empty-state">No expenses recorded yet.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Expense #</th>
+            <th>Date</th>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Method</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (e of expenses(); track e.id) {
+            <tr>
+              <td class="mono">{{ e.expenseNumber }}</td>
+              <td>{{ e.expenseDate | date: 'mediumDate' }}</td>
+              <td>{{ e.expenseCategoryName }}</td>
+              <td>{{ e.amount | number: '1.0-2' }}</td>
+              <td>{{ methodLabel(e.method) }}</td>
+              <td>{{ e.remarks ?? '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

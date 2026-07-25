@@ -1,0 +1,107 @@
+.page {
+  max-width: 1300px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  h1 {
+    font-size: 22px;
+    margin: 0;
+  }
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.hint {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  margin: 8px 0 0;
+}
+
+.empty-state {
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 24px 0;
+}
+
+.label-sheet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.label {
+  position: relative;
+  background: #fff;
+  border: 1px dashed var(--color-border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  text-align: center;
+
+  svg {
+    width: 100%;
+    max-width: 160px;
+  }
+}
+
+.label-sheet.thermal .label {
+  width: 160px;
+  min-height: 90px;
+}
+
+.label-sheet.a4 .label {
+  width: 190px;
+  min-height: 100px;
+}
+
+.label-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+}
+
+.label-store {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.label-product {
+  font-size: 11px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.label-meta {
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
+.label-price {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media print {
+  .label {
+    border: none;
+    page-break-inside: avoid;
+  }
+
+  .label-sheet.a4 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

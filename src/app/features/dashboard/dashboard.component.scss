@@ -1,0 +1,28 @@
+.dashboard {
+  max-width: 1100px;
+}
+
+.stat-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.trend-card {
+  margin-top: 20px;
+}
+
+.trend-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+
+  h2 {
+    font-size: 15px;
+    margin: 0;
+  }
+}
+
+.trend-subtitle {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}

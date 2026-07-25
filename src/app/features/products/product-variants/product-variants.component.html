@@ -1,0 +1,114 @@
+<div class="master-page">
+  <div class="master-header">
+    <div>
+      <a routerLink="/products" class="back-link"><mat-icon>arrow_back</mat-icon> Products</a>
+      <h1>Variants — {{ productName() }}</h1>
+    </div>
+    <button mat-flat-button color="primary" (click)="startCreate()">
+      <mat-icon>add</mat-icon>
+      Add Variant
+    </button>
+  </div>
+
+  @if (showForm) {
+    <div class="card form-card">
+      <h2>{{ editingId ? 'Edit' : 'New' }} Variant</h2>
+      <form (ngSubmit)="save()" class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Design Number</mat-label>
+          <input matInput [(ngModel)]="formModel.designNumber" name="designNumber" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Color</mat-label>
+          <mat-select [(ngModel)]="formModel.colorId" name="colorId">
+            <mat-option [value]="null">— None —</mat-option>
+            @for (c of colors(); track c.id) {
+              <mat-option [value]="c.id">{{ c.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Unit</mat-label>
+          <mat-select [(ngModel)]="formModel.unitOfMeasureId" name="unitOfMeasureId" required>
+            @for (u of units(); track u.id) {
+              <mat-option [value]="u.id">{{ u.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <div class="barcode-row span-2">
+          <mat-form-field appearance="outline">
+            <mat-label>Barcode</mat-label>
+            <input matInput [(ngModel)]="formModel.barcode" name="barcode" placeholder="Leave blank to auto-generate" />
+          </mat-form-field>
+          <button type="button" mat-stroked-button (click)="generateBarcode()">
+            <mat-icon>qr_code_2</mat-icon>
+            Generate
+          </button>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Default Sale Price</mat-label>
+          <input matInput type="number" [(ngModel)]="formModel.defaultSalePrice" name="defaultSalePrice" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Reorder Level</mat-label>
+          <input matInput type="number" [(ngModel)]="formModel.reorderLevel" name="reorderLevel" />
+        </mat-form-field>
+
+        <mat-checkbox class="span-2" [(ngModel)]="formModel.isActive" name="isActive">Active</mat-checkbox>
+
+        <div class="form-actions span-2">
+          <button type="submit" mat-flat-button color="primary">Save</button>
+          <button type="button" mat-stroked-button (click)="cancelForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <div class="card">
+    @if (loading()) {
+      <p>Loading…</p>
+    } @else if (variants().length === 0) {
+      <p class="empty-state">No variants yet. Click "+ Add Variant" to create the first one.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Design #</th>
+            <th>Color</th>
+            <th>Unit</th>
+            <th>Barcode</th>
+            <th>Sale Price</th>
+            <th>Stock</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (v of variants(); track v.id) {
+            <tr [class.inactive-row]="!v.isActive">
+              <td>{{ v.designNumber }}</td>
+              <td>{{ v.colorName ?? '—' }}</td>
+              <td>{{ v.unitOfMeasureName }}</td>
+              <td class="mono">{{ v.barcode }}</td>
+              <td>{{ v.defaultSalePrice | number: '1.0-2' }}</td>
+              <td [class.low-stock]="v.reorderLevel > 0 && v.currentStock <= v.reorderLevel">{{ v.currentStock }}</td>
+              <td><span class="chip" [class.chip-success]="v.isActive" [class.chip-neutral]="!v.isActive">{{ v.isActive ? 'Active' : 'Inactive' }}</span></td>
+              <td class="row-actions">
+                <a mat-icon-button [routerLink]="['/inventory/barcode-print']" [queryParams]="{ variantIds: v.id }" title="Print barcode">
+                  <mat-icon>print</mat-icon>
+                </a>
+                <button mat-icon-button (click)="startEdit(v)"><mat-icon>edit</mat-icon></button>
+                <button mat-icon-button color="warn" (click)="remove(v)"><mat-icon>delete</mat-icon></button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

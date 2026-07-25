@@ -1,0 +1,14 @@
+[33m>[39m Determining Package Manager
+› Using package manager: [2mnpm[22m
+[32m√[39m Determining Package Manager
+[33m>[39m Searching for compatible package version
+› Found compatible package version: [34m@angular/material@20.2.14[39m.
+[32m√[39m Searching for compatible package version
+[33m>[39m Loading package information from registry
+[32m√[39m Loading package information from registry
+[32m√[39m Installing package
+[36mUPDATE[39m package.json (1117 bytes)
+- Installing packages (npm)...
+√ Packages installed successfully.
+[36mUPDATE[39m src/styles.scss (2627 bytes)
+[36mUPDATE[39m src/index.html (502 bytes)

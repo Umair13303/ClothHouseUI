@@ -1,0 +1,167 @@
+<div class="master-page">
+  <div class="master-header">
+    <h1>Products</h1>
+    @if (menuService.can('products', 'add')) {
+      <button mat-flat-button color="primary" (click)="startCreate()">
+        <mat-icon>add</mat-icon>
+        Add Product
+      </button>
+    }
+  </div>
+
+  @if (showForm) {
+    <div class="card form-card">
+      <h2>{{ editingId ? 'Edit' : 'New' }} Product</h2>
+      <form (ngSubmit)="save()" class="form-grid">
+        <div class="section-label">Details</div>
+
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Name</mat-label>
+          <input matInput [(ngModel)]="formModel.name" name="name" required placeholder="e.g. Embroidered Lawn 3-Piece" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Description</mat-label>
+          <textarea matInput rows="3" [(ngModel)]="formModel.description" name="description"></textarea>
+        </mat-form-field>
+
+        <div class="section-label">Classification</div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Product Line</mat-label>
+          <mat-select [(ngModel)]="formModel.productLine" name="productLine">
+            @for (l of productLines; track l.value) {
+              <mat-option [value]="l.value">{{ l.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Stitch Type</mat-label>
+          <mat-select [(ngModel)]="formModel.stitchType" name="stitchType">
+            @for (s of stitchTypes; track s.value) {
+              <mat-option [value]="s.value">{{ s.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <div class="field-with-action">
+          <mat-form-field appearance="outline">
+            <mat-label>Category</mat-label>
+            <mat-select [(ngModel)]="formModel.categoryId" name="categoryId" required>
+              @for (c of categories(); track c.id) {
+                <mat-option [value]="c.id">{{ c.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <button type="button" mat-icon-button matTooltip="Add new category" (click)="addCategory()">
+            <mat-icon>add_circle</mat-icon>
+          </button>
+        </div>
+
+        <div class="field-with-action">
+          <mat-form-field appearance="outline">
+            <mat-label>Brand</mat-label>
+            <mat-select [(ngModel)]="formModel.brandId" name="brandId">
+              <mat-option [value]="null">— None —</mat-option>
+              @for (b of brands(); track b.id) {
+                <mat-option [value]="b.id">{{ b.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <button type="button" mat-icon-button matTooltip="Add new brand" (click)="addBrand()">
+            <mat-icon>add_circle</mat-icon>
+          </button>
+        </div>
+
+        <div class="field-with-action">
+          <mat-form-field appearance="outline">
+            <mat-label>Fabric</mat-label>
+            <mat-select [(ngModel)]="formModel.fabricId" name="fabricId">
+              <mat-option [value]="null">— None —</mat-option>
+              @for (f of fabrics(); track f.id) {
+                <mat-option [value]="f.id">{{ f.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <button type="button" mat-icon-button matTooltip="Add new fabric" (click)="addFabric()">
+            <mat-icon>add_circle</mat-icon>
+          </button>
+        </div>
+
+        <div class="field-with-action">
+          <mat-form-field appearance="outline">
+            <mat-label>Suit Type</mat-label>
+            <mat-select [(ngModel)]="formModel.suitTypeId" name="suitTypeId">
+              <mat-option [value]="null">— None —</mat-option>
+              @for (s of suitTypes(); track s.id) {
+                <mat-option [value]="s.id">{{ s.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <button type="button" mat-icon-button matTooltip="Add new suit type" (click)="addSuitType()">
+            <mat-icon>add_circle</mat-icon>
+          </button>
+        </div>
+
+        @if (editingId) {
+          <mat-checkbox class="span-2" [(ngModel)]="formModel.isActive" name="isActive">Active</mat-checkbox>
+        }
+
+        <div class="form-actions span-2">
+          <button type="submit" mat-flat-button color="primary">Save</button>
+          <button type="button" mat-stroked-button (click)="cancelForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <div class="card">
+    @if (loading()) {
+      <p>Loading…</p>
+    } @else if (products().length === 0) {
+      <p class="empty-state">No products yet.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Line</th>
+            <th>Stitch</th>
+            <th>Category</th>
+            <th>Brand</th>
+            <th>Fabric</th>
+            <th>Variants</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of products(); track p.id) {
+            <tr [class.inactive-row]="!p.isActive">
+              <td>{{ p.name }}</td>
+              <td>{{ lineLabel(p.productLine) }}</td>
+              <td>{{ stitchLabel(p.stitchType) }}</td>
+              <td>{{ p.categoryName }}</td>
+              <td>{{ p.brandName ?? '—' }}</td>
+              <td>{{ p.fabricName ?? '—' }}</td>
+              <td>{{ p.variantCount }}</td>
+              <td><span class="chip" [class.chip-success]="p.isActive" [class.chip-neutral]="!p.isActive">{{ p.isActive ? 'Active' : 'Inactive' }}</span></td>
+              <td class="row-actions">
+                <a mat-icon-button [routerLink]="['/products', p.id, 'variants']" title="Variants">
+                  <mat-icon>inventory_2</mat-icon>
+                </a>
+                @if (menuService.can('products', 'edit')) {
+                  <button mat-icon-button (click)="startEdit(p)"><mat-icon>edit</mat-icon></button>
+                }
+                @if (menuService.can('products', 'delete')) {
+                  <button mat-icon-button color="warn" (click)="remove(p)"><mat-icon>delete</mat-icon></button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

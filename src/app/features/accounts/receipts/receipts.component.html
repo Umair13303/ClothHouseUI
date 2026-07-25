@@ -1,0 +1,90 @@
+<div class="page">
+  <h1>Receipts (from Customers)</h1>
+
+  <div class="card form-card">
+    <form (ngSubmit)="submit()" class="form-grid">
+      <mat-form-field appearance="outline" class="span-2">
+        <mat-label>Customer</mat-label>
+        <mat-select [(ngModel)]="customerId" name="customerId" required>
+          @for (c of customers(); track c.id) {
+            <mat-option [value]="c.id">{{ c.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      @if (selectedCustomer; as sc) {
+        <div class="hint span-2">Current outstanding: {{ sc.outstandingBalance | number: '1.0-2' }}</div>
+      }
+
+      <mat-form-field appearance="outline">
+        <mat-label>Date</mat-label>
+        <input matInput type="date" [(ngModel)]="receiptDate" name="receiptDate" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Amount</mat-label>
+        <input matInput type="number" [(ngModel)]="amount" name="amount" required min="0" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Method</mat-label>
+        <mat-select [(ngModel)]="method" name="method">
+          @for (m of paymentMethods; track m.value) {
+            <mat-option [value]="m.value">{{ m.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Reference Number</mat-label>
+        <input matInput [(ngModel)]="referenceNumber" name="referenceNumber" placeholder="Cheque # / Transaction ID" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="span-2">
+        <mat-label>Remarks</mat-label>
+        <input matInput [(ngModel)]="remarks" name="remarks" />
+      </mat-form-field>
+
+      <div class="form-actions span-2">
+        <button type="submit" mat-flat-button color="primary" [disabled]="saving()">
+          <mat-icon>south_west</mat-icon>
+          Record Receipt
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <h2>Recent Receipts</h2>
+  <div class="card">
+    @if (loadingHistory()) {
+      <p>Loading…</p>
+    } @else if (receipts().length === 0) {
+      <p class="empty-state">No receipts recorded yet.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Receipt #</th>
+            <th>Date</th>
+            <th>Customer</th>
+            <th>Amount</th>
+            <th>Method</th>
+            <th>Reference</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of receipts(); track r.id) {
+            <tr>
+              <td class="mono">{{ r.receiptNumber }}</td>
+              <td>{{ r.receiptDate | date: 'mediumDate' }}</td>
+              <td>{{ r.customerName }}</td>
+              <td>{{ r.amount | number: '1.0-2' }}</td>
+              <td>{{ methodLabel(r.method) }}</td>
+              <td>{{ r.referenceNumber ?? '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

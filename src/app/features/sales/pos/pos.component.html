@@ -1,0 +1,196 @@
+<div class="page">
+  @if (!lastReceipt()) {
+    <div class="page-header">
+      <h1>Sales / POS</h1>
+      <button mat-stroked-button (click)="openDailySales()">
+        <mat-icon>today</mat-icon>
+        Today's Sales
+      </button>
+    </div>
+
+    <div class="pos-layout">
+      <div class="card cart-panel">
+        <app-variant-picker (variantSelected)="addVariant($event)"></app-variant-picker>
+
+        @if (cart.length > 0) {
+          <div class="cart-table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Design #</th>
+                <th>Unit</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Discount</th>
+                <th>Total</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (l of cart; track l.variantId; let i = $index) {
+                <tr [class.over-stock]="l.quantity > l.availableStock">
+                  <td>{{ l.productName }}<div class="mono small">{{ l.barcode }}</div></td>
+                  <td>{{ l.designNumber }}</td>
+                  <td>{{ l.unitName }}</td>
+                  <td><input type="number" [(ngModel)]="l.quantity" min="1" class="qty-input" /></td>
+                  <td><input type="number" [(ngModel)]="l.unitPrice" min="0" class="qty-input" /></td>
+                  <td><input type="number" [(ngModel)]="l.lineDiscount" min="0" class="qty-input" /></td>
+                  <td>{{ lineTotal(l) | number: '1.0-2' }}</td>
+                  <td><button mat-icon-button color="warn" (click)="removeLine(i)"><mat-icon>close</mat-icon></button></td>
+                </tr>
+                @if (l.quantity > l.availableStock) {
+                  <tr class="stock-warning-row"><td colspan="8">Only {{ l.availableStock }} in stock.</td></tr>
+                }
+              }
+            </tbody>
+          </table>
+          </div>
+        } @else {
+          <p class="empty-state">Scan a barcode or search for a product to start the sale.</p>
+        }
+      </div>
+
+      <div class="card summary-panel">
+        <div class="field-with-action">
+          <mat-form-field appearance="outline">
+            <mat-label>Customer (required for credit)</mat-label>
+            <input
+              matInput
+              [(ngModel)]="customerSearchTerm"
+              name="customerSearch"
+              [matAutocomplete]="customerAuto"
+              placeholder="Search by name or phone…" />
+            @if (customerSearchTerm) {
+              <button type="button" mat-icon-button matSuffix (click)="onCustomerSelected(null)">
+                <mat-icon>close</mat-icon>
+              </button>
+            }
+            <mat-autocomplete #customerAuto="matAutocomplete" (optionSelected)="onCustomerSelected($event.option.value)">
+              <mat-option [value]="null">— Walk-in / Cash —</mat-option>
+              @for (c of filteredCustomers(); track c.id) {
+                <mat-option [value]="c">
+                  {{ c.name }}
+                  @if (c.phone) { <span class="option-phone">· {{ c.phone }}</span> }
+                  @if (c.customerType === 'Credit') { (Credit) }
+                </mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          <a
+            mat-icon-button
+            matTooltip="View customer ledger"
+            [class.disabled-link]="!customerId"
+            [routerLink]="customerId ? ['/accounts/customer-ledger'] : null"
+            [queryParams]="{ id: customerId }">
+            <mat-icon>account_balance_wallet</mat-icon>
+          </a>
+        </div>
+
+        @if (selectedCustomer; as sc) {
+          <div class="customer-info">
+            Outstanding: {{ sc.outstandingBalance | number: '1.0-2' }}
+            @if (sc.customerType === 'Credit') { · Credit Limit: {{ sc.creditLimit | number: '1.0-2' }} }
+          </div>
+        }
+
+        <mat-form-field appearance="outline">
+          <mat-label>Overall Discount</mat-label>
+          <input matInput type="number" [(ngModel)]="discount" name="discount" min="0" />
+        </mat-form-field>
+
+        <div class="totals-box">
+          <div><span>Sub Total</span><span>{{ subTotal | number: '1.0-2' }}</span></div>
+          <div><span>Discount</span><span>{{ discount | number: '1.0-2' }}</span></div>
+          <div class="grand"><span>Grand Total</span><span>{{ grandTotal | number: '1.0-2' }}</span></div>
+        </div>
+
+        <h3>Payments</h3>
+        @for (p of payments; track $index; let i = $index) {
+          <div class="payment-row">
+            <mat-form-field appearance="outline" class="method-field">
+              <mat-label>Method</mat-label>
+              <mat-select [(ngModel)]="p.method" [name]="'method' + i">
+                @for (m of paymentMethods; track m.value) {
+                  <mat-option [value]="m.value">{{ m.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="amount-field">
+              <mat-label>Amount</mat-label>
+              <input matInput type="number" [(ngModel)]="p.amount" [name]="'amount' + i" (focus)="autoFillPaid()" />
+            </mat-form-field>
+            <button mat-icon-button color="warn" (click)="removePaymentRow(i)"><mat-icon>close</mat-icon></button>
+          </div>
+        }
+        <button mat-stroked-button (click)="addPaymentRow()">
+          <mat-icon>add</mat-icon>
+          Add Payment
+        </button>
+
+        <div class="totals-box">
+          <div><span>Amount Paid</span><span>{{ amountPaid | number: '1.0-2' }}</span></div>
+          <div [class.balance-due]="balanceDue > 0"><span>Balance Due</span><span>{{ balanceDue | number: '1.0-2' }}</span></div>
+        </div>
+
+        <button mat-flat-button color="primary" class="checkout-btn" [disabled]="saving() || cart.length === 0" (click)="submit()">
+          <mat-icon>point_of_sale</mat-icon>
+          Complete Sale
+        </button>
+      </div>
+    </div>
+  } @else {
+    <div class="receipt-screen">
+      <div class="receipt-actions no-print">
+        <button mat-flat-button color="primary" (click)="printReceipt()">
+          <mat-icon>print</mat-icon>
+          Print Receipt
+        </button>
+        <button mat-stroked-button (click)="newSale()">
+          <mat-icon>add_shopping_cart</mat-icon>
+          New Sale
+        </button>
+      </div>
+
+      <div class="receipt" id="receipt" [class.compact]="receiptPaperWidthMm() === 58" [style.width.mm]="receiptPaperWidthMm()">
+        <div class="receipt-store">
+          <h2>{{ storeName() }}</h2>
+          @if (storeAddress()) { <p class="store-address">{{ storeAddress() }}</p> }
+        </div>
+        <div class="receipt-meta">
+          <div class="meta-row">
+            <span>{{ lastReceipt().invoiceNumber }}</span>
+            <span>{{ lastReceipt().saleDate | date: 'medium' }}</span>
+          </div>
+          <div class="meta-row">
+            <span>{{ lastReceipt().customerName ?? 'Walk-in' }}</span>
+            <span>{{ cashierName }}</span>
+          </div>
+        </div>
+        <table class="receipt-table">
+          <thead>
+            <tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>
+          </thead>
+          <tbody>
+            @for (i of lastReceipt().items; track i.id) {
+              <tr>
+                <td>{{ i.productName }} ({{ i.designNumber }})</td>
+                <td>{{ i.quantity }} {{ i.unitOfMeasureCode }}</td>
+                <td>{{ i.unitPrice | number: '1.0-2' }}</td>
+                <td>{{ i.lineTotal | number: '1.0-2' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <div class="receipt-totals">
+          <div><span>Sub Total</span><span>{{ lastReceipt().subTotal | number: '1.0-2' }}</span></div>
+          <div><span>Discount</span><span>{{ lastReceipt().discount | number: '1.0-2' }}</span></div>
+          <div class="grand"><span>Grand Total</span><span>{{ lastReceipt().grandTotal | number: '1.0-2' }}</span></div>
+          <div><span>Paid</span><span>{{ lastReceipt().amountPaid | number: '1.0-2' }}</span></div>
+          <div><span>Balance Due</span><span>{{ lastReceipt().balanceDue | number: '1.0-2' }}</span></div>
+        </div>
+        <p class="thanks">Thank you for shopping with us!</p>
+      </div>
+    </div>
+  }
+</div>

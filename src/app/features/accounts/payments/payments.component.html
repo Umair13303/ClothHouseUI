@@ -1,0 +1,90 @@
+<div class="page">
+  <h1>Payments (to Vendors)</h1>
+
+  <div class="card form-card">
+    <form (ngSubmit)="submit()" class="form-grid">
+      <mat-form-field appearance="outline" class="span-2">
+        <mat-label>Vendor</mat-label>
+        <mat-select [(ngModel)]="vendorId" name="vendorId" required>
+          @for (v of vendors(); track v.id) {
+            <mat-option [value]="v.id">{{ v.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      @if (selectedVendor; as sv) {
+        <div class="hint span-2">Current outstanding: {{ sv.outstandingBalance | number: '1.0-2' }}</div>
+      }
+
+      <mat-form-field appearance="outline">
+        <mat-label>Date</mat-label>
+        <input matInput type="date" [(ngModel)]="paymentDate" name="paymentDate" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Amount</mat-label>
+        <input matInput type="number" [(ngModel)]="amount" name="amount" required min="0" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Method</mat-label>
+        <mat-select [(ngModel)]="method" name="method">
+          @for (m of paymentMethods; track m.value) {
+            <mat-option [value]="m.value">{{ m.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Reference Number</mat-label>
+        <input matInput [(ngModel)]="referenceNumber" name="referenceNumber" placeholder="Cheque # / Transaction ID" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="span-2">
+        <mat-label>Remarks</mat-label>
+        <input matInput [(ngModel)]="remarks" name="remarks" />
+      </mat-form-field>
+
+      <div class="form-actions span-2">
+        <button type="submit" mat-flat-button color="primary" [disabled]="saving()">
+          <mat-icon>north_east</mat-icon>
+          Record Payment
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <h2>Recent Payments</h2>
+  <div class="card">
+    @if (loadingHistory()) {
+      <p>Loading…</p>
+    } @else if (payments().length === 0) {
+      <p class="empty-state">No payments recorded yet.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Payment #</th>
+            <th>Date</th>
+            <th>Vendor</th>
+            <th>Amount</th>
+            <th>Method</th>
+            <th>Reference</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of payments(); track p.id) {
+            <tr>
+              <td class="mono">{{ p.paymentNumber }}</td>
+              <td>{{ p.paymentDate | date: 'mediumDate' }}</td>
+              <td>{{ p.vendorName }}</td>
+              <td>{{ p.amount | number: '1.0-2' }}</td>
+              <td>{{ methodLabel(p.method) }}</td>
+              <td>{{ p.referenceNumber ?? '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

@@ -1,0 +1,41 @@
+<div class="page">
+  <div class="toolbar no-print">
+    <h1>Barcode Printing</h1>
+    <div class="toolbar-actions">
+      <mat-button-toggle-group [(ngModel)]="labelSize" name="labelSize">
+        <mat-button-toggle value="thermal">Thermal 40×25mm</mat-button-toggle>
+        <mat-button-toggle value="a4">A4 Grid</mat-button-toggle>
+      </mat-button-toggle-group>
+      <button mat-stroked-button (click)="clearAll()" [disabled]="labels().length === 0">Clear All</button>
+      <button mat-flat-button color="primary" (click)="print()" [disabled]="labels().length === 0">
+        <mat-icon>print</mat-icon>
+        Print
+      </button>
+    </div>
+  </div>
+
+  <div class="card no-print">
+    <app-variant-picker (variantSelected)="addVariant($event)"></app-variant-picker>
+    <p class="hint">Add a product to generate its label. Use the copy button on a label to print multiple of the same barcode.</p>
+  </div>
+
+  @if (labels().length === 0) {
+    <p class="empty-state no-print">No labels added yet.</p>
+  }
+
+  <div class="label-sheet" [class.thermal]="labelSize === 'thermal'" [class.a4]="labelSize === 'a4'">
+    @for (l of labels(); track l.svgId) {
+      <div class="label">
+        <div class="label-actions no-print">
+          <button mat-icon-button (click)="duplicateLabel(l)" title="Duplicate"><mat-icon>content_copy</mat-icon></button>
+          <button mat-icon-button color="warn" (click)="removeLabel(l.svgId)" title="Remove"><mat-icon>close</mat-icon></button>
+        </div>
+        <div class="label-store">ClothPOS</div>
+        <div class="label-product">{{ l.productName }}</div>
+        <div class="label-meta">{{ l.designNumber }}@if (l.colorName) { · {{ l.colorName }} }</div>
+        <svg [id]="l.svgId"></svg>
+        <div class="label-price">Rs. {{ l.price | number: '1.0-0' }} / {{ l.unitOfMeasureName }}</div>
+      </div>
+    }
+  </div>
+</div>

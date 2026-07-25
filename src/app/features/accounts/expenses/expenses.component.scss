@@ -1,0 +1,51 @@
+.page {
+  max-width: 900px;
+}
+
+h1 {
+  font-size: 22px;
+  margin: 0 0 4px;
+}
+
+h2 {
+  font-size: 18px;
+  margin: 28px 0 12px;
+}
+
+.hint-top {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  margin: 0 0 20px;
+}
+
+.form-actions {
+  margin-top: 8px;
+}
+
+table {
+  width: 100%;
+}
+
+.mono {
+  font-family: 'Consolas', monospace;
+  font-size: 13px;
+}
+
+.empty-state {
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 24px 0;
+}
+
+.alert {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+
+  &.success {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+  }
+}

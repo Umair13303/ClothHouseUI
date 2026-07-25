@@ -1,0 +1,89 @@
+<div class="page">
+  <h1>Roles &amp; Permissions</h1>
+
+  <div class="roles-layout">
+    <div class="card roles-card">
+      <h2>Roles</h2>
+
+      <form (ngSubmit)="addRole()" class="add-role-form">
+        <mat-form-field appearance="outline" class="grow">
+          <mat-label>New role name</mat-label>
+          <input matInput [(ngModel)]="newRoleName" name="newRoleName" required />
+        </mat-form-field>
+        <button type="submit" mat-icon-button color="primary" [disabled]="!newRoleName.trim()">
+          <mat-icon>add</mat-icon>
+        </button>
+      </form>
+
+      <div class="role-list">
+        @for (role of roles(); track role.id) {
+          <div class="role-row" [class.selected]="selectedRoleId() === role.id">
+            @if (editingRoleId === role.id) {
+              <mat-form-field appearance="outline" class="grow">
+                <input matInput [(ngModel)]="editRoleName" name="editRoleName" (keydown.enter)="saveRename(role)" />
+              </mat-form-field>
+              <button mat-icon-button (click)="saveRename(role)"><mat-icon>check</mat-icon></button>
+              <button mat-icon-button (click)="cancelRename()"><mat-icon>close</mat-icon></button>
+            } @else {
+              <button type="button" class="role-name" (click)="selectRole(role)">{{ role.name }}</button>
+              <button mat-icon-button (click)="startRename(role)"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button color="warn" (click)="deleteRole(role)"><mat-icon>delete</mat-icon></button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="card permissions-card">
+      <h2>Permissions</h2>
+
+      @if (!selectedRoleId()) {
+        <p class="hint">Select a role on the left to view and edit its menu permissions.</p>
+      } @else if (loadingPermissions()) {
+        <p>Loading…</p>
+      } @else {
+        <div class="permissions-table-wrap">
+          <table class="permissions-table">
+            <thead>
+              <tr>
+                <th>Menu</th>
+                <th>View</th>
+                <th>Add</th>
+                <th>Edit</th>
+                <th>Delete</th>
+                <th>All</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (group of groupedRows(); track group.label) {
+                <tr class="group-row">
+                  <td colspan="6">{{ group.label }}</td>
+                </tr>
+                @for (row of group.rows; track row.menuItemId) {
+                  <tr>
+                    <td>{{ row.label }}</td>
+                    <td><mat-checkbox [(ngModel)]="row.canView"></mat-checkbox></td>
+                    <td><mat-checkbox [(ngModel)]="row.canAdd"></mat-checkbox></td>
+                    <td><mat-checkbox [(ngModel)]="row.canEdit"></mat-checkbox></td>
+                    <td><mat-checkbox [(ngModel)]="row.canDelete"></mat-checkbox></td>
+                    <td>
+                      <button type="button" mat-button (click)="toggleRow(row, true)">All</button>
+                      <button type="button" mat-button (click)="toggleRow(row, false)">None</button>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="form-actions">
+          <button mat-flat-button color="primary" [disabled]="savingPermissions()" (click)="savePermissions()">
+            <mat-icon>save</mat-icon>
+            Save Permissions
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</div>

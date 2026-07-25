@@ -1,0 +1,42 @@
+<div class="trend-chart-wrap">
+  @if (data.length === 0) {
+    <div class="empty-state">
+      <p>No sales data yet.</p>
+    </div>
+  } @else {
+    <svg
+      [attr.viewBox]="'0 0 ' + width + ' ' + height"
+      preserveAspectRatio="none"
+      class="trend-svg"
+      (pointermove)="onPointerMove($event)"
+      (pointerleave)="onPointerLeave()">
+      @for (g of gridLines; track g) {
+        <line [attr.x1]="paddingLeft" [attr.x2]="width - paddingRight" [attr.y1]="yFor(g)" [attr.y2]="yFor(g)" class="gridline" />
+        <text [attr.x]="paddingLeft - 8" [attr.y]="yFor(g) + 4" class="axis-label y-label">{{ g | number: '1.0-0' }}</text>
+      }
+
+      <path [attr.d]="areaPath" class="area-fill" />
+      <path [attr.d]="linePath" class="trend-line" />
+
+      @for (i of labelIndices; track i) {
+        <text [attr.x]="xFor(i)" [attr.y]="height - 6" class="axis-label x-label">{{ data[i].label }}</text>
+      }
+
+      <circle [attr.cx]="xFor(lastIndex)" [attr.cy]="yFor(data[lastIndex].value)" r="6" class="end-dot-ring" />
+      <circle [attr.cx]="xFor(lastIndex)" [attr.cy]="yFor(data[lastIndex].value)" r="4" class="end-dot" />
+
+      @if (hoverPoint; as hp) {
+        <line [attr.x1]="xFor(hoverIndex()!)" [attr.x2]="xFor(hoverIndex()!)" [attr.y1]="paddingTop" [attr.y2]="paddingTop + innerHeight" class="crosshair" />
+        <circle [attr.cx]="xFor(hoverIndex()!)" [attr.cy]="yFor(hp.value)" r="6" class="hover-dot-ring" />
+        <circle [attr.cx]="xFor(hoverIndex()!)" [attr.cy]="yFor(hp.value)" r="4" class="hover-dot" />
+      }
+    </svg>
+
+    @if (hoverPoint; as hp) {
+      <div class="tooltip" [style.left.%]="tooltipLeftPercent">
+        <div class="tooltip-value">{{ hp.value | number: '1.0-2' }}</div>
+        <div class="tooltip-label">{{ hp.label }}</div>
+      </div>
+    }
+  }
+</div>

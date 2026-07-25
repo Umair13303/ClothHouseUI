@@ -1,0 +1,46 @@
+.page {
+  max-width: 1000px;
+}
+
+h1 {
+  font-size: 22px;
+  margin: 0 0 16px;
+}
+
+h2 {
+  font-size: 16px;
+  margin: 0 0 16px;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.code-badge {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+
+.form-actions {
+  margin-top: 8px;
+}
+
+.alert {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+
+  &.success {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+  }
+}

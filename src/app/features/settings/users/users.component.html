@@ -1,0 +1,94 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Users</h1>
+    <button mat-flat-button color="primary" (click)="startCreate()">
+      <mat-icon>person_add</mat-icon>
+      Add User
+    </button>
+  </div>
+
+  @if (showForm) {
+    <div class="card form-card">
+      <h2>New User</h2>
+
+      @if (errorMessage()) {
+        <div class="alert">{{ errorMessage() }}</div>
+      }
+
+      <form (ngSubmit)="save()" class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Username</mat-label>
+          <input matInput [(ngModel)]="formModel.userName" name="userName" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Full Name</mat-label>
+          <input matInput [(ngModel)]="formModel.fullName" name="fullName" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" [(ngModel)]="formModel.email" name="email" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Password</mat-label>
+          <input matInput type="password" [(ngModel)]="formModel.password" name="password" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Role</mat-label>
+          <mat-select [(ngModel)]="formModel.role" name="role" required>
+            @for (r of roles(); track r.id) {
+              <mat-option [value]="r.name">{{ r.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <div class="form-actions span-2">
+          <button type="submit" mat-flat-button color="primary" [disabled]="saving()">Save</button>
+          <button type="button" mat-stroked-button (click)="cancelForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <div class="card">
+    @if (loading()) {
+      <p>Loading…</p>
+    } @else if (users().length === 0) {
+      <p class="empty-state">No users yet.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Roles</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of users(); track u.id) {
+            <tr [class.inactive-row]="!u.isActive">
+              <td>{{ u.userName }}</td>
+              <td>{{ u.fullName }}</td>
+              <td>{{ u.email }}</td>
+              <td>{{ u.roles.join(', ') }}</td>
+              <td>
+                <span class="chip" [class.chip-success]="u.isActive" [class.chip-neutral]="!u.isActive">
+                  {{ u.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td class="row-actions">
+                <button mat-button (click)="toggleActive(u)">{{ u.isActive ? 'Deactivate' : 'Activate' }}</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

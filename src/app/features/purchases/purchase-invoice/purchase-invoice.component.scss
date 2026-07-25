@@ -1,0 +1,102 @@
+.page {
+  max-width: 1300px;
+}
+
+h1 {
+  font-size: 22px;
+  margin: 0 0 16px;
+}
+
+h2 {
+  font-size: 18px;
+  margin: 28px 0 12px;
+}
+
+.header-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+
+  mat-form-field {
+    flex: 1;
+    min-width: 180px;
+  }
+}
+
+.date-field {
+  max-width: 200px;
+}
+
+table {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.mono {
+  font-family: 'Consolas', monospace;
+  font-size: 13px;
+}
+
+.qty-input {
+  width: 90px;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 14px;
+}
+
+.charges-grid {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+
+  mat-form-field {
+    width: 150px;
+  }
+}
+
+.remarks-field {
+  width: 100%;
+  max-width: 500px;
+}
+
+.totals {
+  text-align: right;
+  padding: 8px 0;
+  font-size: 14px;
+
+  .grand {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+}
+
+.form-actions {
+  margin-top: 16px;
+}
+
+.row-actions {
+  text-align: right;
+}
+
+.empty-state {
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 24px 0;
+}
+
+.alert {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+
+  &.success {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+  }
+}

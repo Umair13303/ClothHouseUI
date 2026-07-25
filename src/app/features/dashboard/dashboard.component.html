@@ -1,0 +1,43 @@
+<div class="dashboard">
+  <div class="stat-grid">
+    <div class="card stat-tile stat-tile--primary">
+      <span class="stat-icon"><mat-icon>point_of_sale</mat-icon></span>
+      <div>
+        <p class="stat-label">Today's Sales</p>
+        <p class="stat-value">{{ todaySales() | number: '1.0-2' }}</p>
+      </div>
+    </div>
+
+    <div class="card stat-tile stat-tile--success">
+      <span class="stat-icon"><mat-icon>account_balance_wallet</mat-icon></span>
+      <div>
+        <p class="stat-label">Receivables</p>
+        <p class="stat-value">{{ receivables() | number: '1.0-2' }}</p>
+      </div>
+    </div>
+
+    <div class="card stat-tile stat-tile--warning">
+      <span class="stat-icon"><mat-icon>account_balance</mat-icon></span>
+      <div>
+        <p class="stat-label">Payables</p>
+        <p class="stat-value">{{ payables() | number: '1.0-2' }}</p>
+      </div>
+    </div>
+
+    <div class="card stat-tile stat-tile--danger">
+      <span class="stat-icon"><mat-icon>inventory_2</mat-icon></span>
+      <div>
+        <p class="stat-label">Low Stock Items</p>
+        <p class="stat-value">{{ lowStockCount() }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card trend-card">
+    <div class="trend-header">
+      <h2>Sales Trend</h2>
+      <span class="trend-subtitle">Last 14 days</span>
+    </div>
+    <app-sales-trend-chart [data]="salesTrend()"></app-sales-trend-chart>
+  </div>
+</div>

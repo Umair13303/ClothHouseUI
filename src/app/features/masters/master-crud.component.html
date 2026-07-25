@@ -1,0 +1,102 @@
+<div class="master-page">
+  <div class="master-header">
+    <div class="title-group">
+      <h1>{{ config.title }}</h1>
+      <span class="chip chip-neutral count-badge">{{ items().length }}</span>
+    </div>
+    <div class="header-actions">
+      <mat-checkbox [checked]="includeInactive()" (change)="toggleIncludeInactive()">Show inactive</mat-checkbox>
+      @if (menuService.can(config.resource, 'add')) {
+        <button mat-flat-button color="primary" (click)="startCreate()">
+          <mat-icon>add</mat-icon>
+          Add
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (showForm) {
+    <div class="card form-card">
+      <h2>{{ editingId ? 'Edit' : 'New' }} {{ config.title.slice(0, -1) }}</h2>
+      <form (ngSubmit)="save()" class="form-grid">
+        @for (field of config.fields; track field.key) {
+          @switch (field.type) {
+            @case ('checkbox') {
+              <mat-checkbox class="span-2" [(ngModel)]="formModel[field.key]" [name]="field.key">{{ field.label }}</mat-checkbox>
+            }
+            @case ('number') {
+              <mat-form-field appearance="outline">
+                <mat-label>{{ field.label }}</mat-label>
+                <input matInput type="number" [(ngModel)]="formModel[field.key]" [name]="field.key" [placeholder]="field.placeholder ?? ''" />
+              </mat-form-field>
+            }
+            @case ('textarea') {
+              <mat-form-field appearance="outline" class="span-2">
+                <mat-label>{{ field.label }}</mat-label>
+                <textarea matInput rows="2" [(ngModel)]="formModel[field.key]" [name]="field.key" [placeholder]="field.placeholder ?? ''"></textarea>
+              </mat-form-field>
+            }
+            @default {
+              <mat-form-field appearance="outline">
+                <mat-label>{{ field.label }}</mat-label>
+                <input matInput type="text" [(ngModel)]="formModel[field.key]" [name]="field.key" [required]="!!field.required" [placeholder]="field.placeholder ?? ''" />
+              </mat-form-field>
+            }
+          }
+        }
+
+        <div class="form-actions span-2">
+          <button type="submit" mat-flat-button color="primary">Save</button>
+          <button type="button" mat-stroked-button (click)="cancelForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <div class="card">
+    @if (loading()) {
+      <p>Loading…</p>
+    } @else if (items().length === 0) {
+      <div class="empty-state">
+        <mat-icon>inbox</mat-icon>
+        <p>No records yet. Click "+ Add" to create the first one.</p>
+      </div>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            @for (field of config.fields; track field.key) {
+              <th>{{ field.label }}</th>
+            }
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of items(); track item['id']) {
+            <tr [class.inactive-row]="item['isActive'] === false">
+              @for (field of config.fields; track field.key) {
+                <td>
+                  @if (field.type === 'checkbox') {
+                    <span class="chip" [class.chip-success]="item[field.key]" [class.chip-neutral]="!item[field.key]">
+                      {{ item[field.key] ? 'Yes' : 'No' }}
+                    </span>
+                  } @else {
+                    {{ item[field.key] }}
+                  }
+                </td>
+              }
+              <td class="row-actions">
+                @if (menuService.can(config.resource, 'edit')) {
+                  <button mat-icon-button (click)="startEdit(item)"><mat-icon>edit</mat-icon></button>
+                }
+                @if (menuService.can(config.resource, 'delete')) {
+                  <button mat-icon-button color="warn" (click)="remove(item)"><mat-icon>delete</mat-icon></button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

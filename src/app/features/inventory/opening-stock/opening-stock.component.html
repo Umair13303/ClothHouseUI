@@ -1,0 +1,91 @@
+<div class="page">
+  <h1>Opening Stock</h1>
+  <p class="hint">Enter the inventory you already have on hand before using this system. This increases stock and appears in the Stock Ledger, but never touches the Vendor Ledger.</p>
+
+  <div class="card">
+    <div class="header-row">
+      <mat-form-field appearance="outline" class="date-field">
+        <mat-label>Opening Date</mat-label>
+        <input matInput type="date" [(ngModel)]="openingDate" name="openingDate" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="remarks-field">
+        <mat-label>Remarks</mat-label>
+        <input matInput [(ngModel)]="remarks" name="remarks" placeholder="Optional note" />
+      </mat-form-field>
+    </div>
+
+    <app-variant-picker (variantSelected)="addVariant($event)"></app-variant-picker>
+
+    @if (lines.length > 0) {
+      <table>
+        <thead>
+          <tr>
+            <th>Barcode</th>
+            <th>Product</th>
+            <th>Design #</th>
+            <th>Quantity</th>
+            <th>Unit Cost</th>
+            <th>Line Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (l of lines; track l.variantId; let i = $index) {
+            <tr>
+              <td class="mono">{{ l.barcode }}</td>
+              <td>{{ l.productName }}</td>
+              <td>{{ l.designNumber }}</td>
+              <td><input type="number" [(ngModel)]="l.quantity" min="0" class="qty-input" /></td>
+              <td><input type="number" [(ngModel)]="l.unitCost" min="0" class="qty-input" /></td>
+              <td>{{ l.quantity * l.unitCost | number: '1.0-2' }}</td>
+              <td><button mat-icon-button color="warn" (click)="removeLine(i)"><mat-icon>close</mat-icon></button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <div class="totals">Total value: <strong>{{ totalValue | number: '1.0-2' }}</strong></div>
+    } @else {
+      <p class="empty-state">Scan or search a product above to add it to this opening stock entry.</p>
+    }
+
+    <div class="form-actions">
+      <button mat-flat-button color="primary" [disabled]="saving() || lines.length === 0" (click)="submit()">
+        <mat-icon>save</mat-icon>
+        Post Opening Stock
+      </button>
+    </div>
+  </div>
+
+  <h2>Recent Entries</h2>
+  <div class="card">
+    @if (loadingHistory()) {
+      <p>Loading…</p>
+    } @else if (history().length === 0) {
+      <p class="empty-state">No opening stock entries yet.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Reference #</th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Total Value</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (h of history(); track h.id) {
+            <tr>
+              <td class="mono">{{ h.referenceNumber }}</td>
+              <td>{{ h.openingDate | date: 'mediumDate' }}</td>
+              <td>{{ h.items.length }}</td>
+              <td>{{ lineTotal(h.items) | number: '1.0-2' }}</td>
+              <td>{{ h.remarks ?? '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

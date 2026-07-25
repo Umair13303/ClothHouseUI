@@ -1,0 +1,131 @@
+.invoice-print-page {
+  padding: 24px;
+}
+
+.status-text {
+  text-align: center;
+  color: var(--color-text-muted);
+  margin-top: 60px;
+}
+
+.receipt-screen {
+  max-width: 420px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.receipt-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+// Width is bound inline to the store's configured thermal paper size (58mm/80mm)
+// so the on-screen preview and the printed receipt share the same proportions.
+.receipt {
+  box-sizing: border-box;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 4mm;
+  font-size: 12px;
+
+  h2 {
+    margin: 0 0 2px;
+    font-size: 15px;
+  }
+
+  &.compact {
+    font-size: 10.5px;
+
+    h2 {
+      font-size: 13px;
+    }
+  }
+}
+
+.receipt-store {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.store-address {
+  margin: 0;
+  font-size: 0.85em;
+  color: var(--color-text-muted);
+}
+
+.receipt-meta {
+  margin-bottom: 10px;
+  font-size: 0.85em;
+  color: var(--color-text-muted);
+  border-top: 1px dashed var(--color-border);
+  border-bottom: 1px dashed var(--color-border);
+  padding: 6px 0;
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 1px 0;
+}
+
+.receipt-table {
+  width: 100%;
+
+  th, td {
+    padding: 2px;
+    font-size: 8px;
+    text-align: left;
+    border-bottom: 1px dashed var(--color-border);
+  }
+}
+
+.receipt-totals {
+  margin-top: 10px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 8px;
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+  }
+
+  .grand {
+    font-weight: 700;
+  }
+}
+
+.thanks {
+  text-align: center;
+  margin-top: 14px;
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
+@media print {
+  .invoice-print-page {
+    padding: 0;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .receipt-screen {
+    max-width: 100%;
+    display: block;
+  }
+
+  .receipt {
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    margin: 0 auto;
+  }
+}

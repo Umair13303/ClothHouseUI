@@ -1,0 +1,17 @@
+[33m>[39m Building...
+[32m√[39m Building...
+[1mInitial chunk files[22m  [2m | [22m[1mNames[22m        [2m | [22m [1mRaw size[22m[2m | [22m[1mEstimated transfer size[22m
+[32mmain-XX7CVI6O.js[39m     [2m | [22m[2mmain[22m         [2m | [22m[36m817.77 kB[39m[2m | [22m              [36m144.78 kB[39m
+[32mchunk-JVI3H6ZU.js[39m    [2m | [22m[2m-[22m            [2m | [22m[36m167.63 kB[39m[2m | [22m               [36m49.47 kB[39m
+[32mpolyfills-5CFQRCPP.js[39m[2m | [22m[2mpolyfills[22m    [2m | [22m [36m34.59 kB[39m[2m | [22m               [36m11.33 kB[39m
+[32mstyles-D7IOVCPN.css[39m  [2m | [22m[2mstyles[22m       [2m | [22m  [36m9.36 kB[39m[2m | [22m                [36m1.71 kB[39m
+
+[1m [22m                    [2m | [22m[1mInitial total[22m[2m | [22m  [1m1.03 MB[22m[2m | [22m              [1m207.30 kB[22m
+
+[1mLazy chunk files[22m     [2m | [22m[1mNames[22m        [2m | [22m [1mRaw size[22m[2m | [22m[1mEstimated transfer size[22m
+[32mchunk-LWKPASTH.js[39m    [2m | [22m[2mbrowser[22m      [2m | [22m [36m67.75 kB[39m[2m | [22m               [36m17.74 kB[39m
+
+Application bundle generation complete. [5.927 seconds] - 2026-07-11T07:25:18.504Z
+
+Output location: D:\Cloth-POS\frontend\dist\cloth-pos-frontend
+

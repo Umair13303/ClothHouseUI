@@ -1,0 +1,73 @@
+<mat-sidenav-container class="shell">
+  <mat-sidenav
+    [mode]="isMobile() ? 'over' : 'side'"
+    [opened]="sidenavOpened()"
+    (closedStart)="sidenavOpened.set(false)"
+    class="sidebar"
+    [fixedInViewport]="isMobile()"
+  >
+    <div class="brand">
+      <span class="brand-badge"><mat-icon>storefront</mat-icon></span>
+      <span class="brand-name">ClothPOS</span>
+    </div>
+
+    <nav>
+      @for (group of navGroups(); track group.label) {
+        <div class="nav-group">
+          <div class="nav-group-label">{{ group.label }}</div>
+          <mat-nav-list>
+            @for (link of group.links; track link.label) {
+              @if (link.path) {
+                <a mat-list-item [routerLink]="link.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: link.path === '/' }" (click)="closeOnMobileNav()">
+                  <mat-icon matListItemIcon>{{ link.icon }}</mat-icon>
+                  <span matListItemTitle>{{ link.label }}</span>
+                </a>
+              }
+            }
+          </mat-nav-list>
+        </div>
+      }
+    </nav>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="content-area">
+    <mat-toolbar class="topbar">
+      @if (isMobile() || isCollapsibleRoute()) {
+        <button mat-icon-button type="button" (click)="sidenavOpened.set(!sidenavOpened())" matTooltip="Menu">
+          <mat-icon>menu</mat-icon>
+        </button>
+      }
+      <span class="spacer"></span>
+      <button
+        mat-icon-button
+        class="theme-toggle"
+        type="button"
+        [matTooltip]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+        (click)="themeService.toggle()"
+      >
+        <mat-icon>{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+      @if (authService.currentUser(); as user) {
+        <button mat-button class="user-chip" [matMenuTriggerFor]="userMenu">
+          <mat-icon>account_circle</mat-icon>
+          <span class="user-name">{{ user.fullName }}</span>
+        </button>
+        <mat-menu #userMenu="matMenu">
+          <div class="menu-role">{{ user.roles.join(', ') }}</div>
+          <button mat-menu-item routerLink="/settings">
+            <mat-icon>settings</mat-icon>
+            <span>Settings</span>
+          </button>
+          <button mat-menu-item (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            <span>Sign out</span>
+          </button>
+        </mat-menu>
+      }
+    </mat-toolbar>
+
+    <main class="content">
+      <router-outlet></router-outlet>
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

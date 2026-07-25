@@ -1,0 +1,89 @@
+<div class="page">
+  <h1>Stock Adjustment</h1>
+  <p class="hint">Correct stock counts after a physical count, damage, loss, or other reasons. Use a positive number to increase stock and a negative number to decrease it.</p>
+
+  <div class="card">
+    <div class="header-row">
+      <mat-form-field appearance="outline" class="date-field">
+        <mat-label>Adjustment Date</mat-label>
+        <input matInput type="date" [(ngModel)]="adjustmentDate" name="adjustmentDate" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="remarks-field">
+        <mat-label>Reason</mat-label>
+        <input matInput [(ngModel)]="reason" name="reason" required placeholder="e.g. Physical count correction, damaged goods" />
+      </mat-form-field>
+    </div>
+
+    <app-variant-picker (variantSelected)="addVariant($event)"></app-variant-picker>
+
+    @if (lines.length > 0) {
+      <table>
+        <thead>
+          <tr>
+            <th>Barcode</th>
+            <th>Product</th>
+            <th>Design #</th>
+            <th>Current Stock</th>
+            <th>Change (+/-)</th>
+            <th>New Stock</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (l of lines; track l.variantId; let i = $index) {
+            <tr>
+              <td class="mono">{{ l.barcode }}</td>
+              <td>{{ l.productName }}</td>
+              <td>{{ l.designNumber }}</td>
+              <td>{{ l.currentStock }}</td>
+              <td><input type="number" [(ngModel)]="l.quantityChange" class="qty-input" /></td>
+              <td [class.negative]="l.currentStock + l.quantityChange < 0">{{ l.currentStock + l.quantityChange }}</td>
+              <td><button mat-icon-button color="warn" (click)="removeLine(i)"><mat-icon>close</mat-icon></button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <p class="empty-state">Scan or search a product above to add it to this adjustment.</p>
+    }
+
+    <div class="form-actions">
+      <button mat-flat-button color="primary" [disabled]="saving() || lines.length === 0" (click)="submit()">
+        <mat-icon>save</mat-icon>
+        Post Adjustment
+      </button>
+    </div>
+  </div>
+
+  <h2>Recent Adjustments</h2>
+  <div class="card">
+    @if (loadingHistory()) {
+      <p>Loading…</p>
+    } @else if (history().length === 0) {
+      <p class="empty-state">No stock adjustments yet.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Reference #</th>
+            <th>Date</th>
+            <th>Reason</th>
+            <th>Items</th>
+            <th>Net Change</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (h of history(); track h.id) {
+            <tr>
+              <td class="mono">{{ h.referenceNumber }}</td>
+              <td>{{ h.adjustmentDate | date: 'mediumDate' }}</td>
+              <td>{{ h.reason }}</td>
+              <td>{{ h.items.length }}</td>
+              <td [class.negative]="netChange(h.items) < 0">{{ netChange(h.items) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

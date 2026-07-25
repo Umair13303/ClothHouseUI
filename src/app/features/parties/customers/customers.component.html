@@ -1,0 +1,112 @@
+<div class="master-page">
+  <div class="master-header">
+    <h1>Customers</h1>
+    @if (menuService.can('customers', 'add')) {
+      <button mat-flat-button color="primary" (click)="startCreate()">
+        <mat-icon>add</mat-icon>
+        Add Customer
+      </button>
+    }
+  </div>
+
+  @if (showForm) {
+    <div class="card form-card">
+      <h2>{{ editingId ? 'Edit' : 'New' }} Customer</h2>
+      <form (ngSubmit)="save()" class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Name</mat-label>
+          <input matInput [(ngModel)]="formModel.name" name="name" required />
+        </mat-form-field>
+
+        @if (editingId) {
+          <mat-form-field appearance="outline">
+            <mat-label>Type</mat-label>
+            <mat-select [(ngModel)]="formModel.customerType" name="customerType">
+              <mat-option value="Cash">Cash</mat-option>
+              <mat-option value="Credit">Credit</mat-option>
+            </mat-select>
+          </mat-form-field>
+        }
+
+        <mat-form-field appearance="outline">
+          <mat-label>Phone</mat-label>
+          <input matInput [(ngModel)]="formModel.phone" name="phone" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput [(ngModel)]="formModel.email" name="email" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Address</mat-label>
+          <input matInput [(ngModel)]="formModel.address" name="address" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>CNIC</mat-label>
+          <input matInput [(ngModel)]="formModel.cnic" name="cnic" />
+        </mat-form-field>
+
+        @if (formModel.customerType === 'Credit') {
+          <mat-form-field appearance="outline">
+            <mat-label>Credit Limit</mat-label>
+            <input matInput type="number" [(ngModel)]="formModel.creditLimit" name="creditLimit" />
+          </mat-form-field>
+        }
+
+        @if (editingId) {
+          <mat-checkbox class="span-2" [(ngModel)]="formModel.isActive" name="isActive">Active</mat-checkbox>
+        }
+
+        <div class="form-actions span-2">
+          <button type="submit" mat-flat-button color="primary">Save</button>
+          <button type="button" mat-stroked-button (click)="cancelForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <div class="card">
+    @if (loading()) {
+      <p>Loading…</p>
+    } @else if (customers().length === 0) {
+      <p class="empty-state">No customers yet.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Phone</th>
+            <th>Outstanding</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of customers(); track c.id) {
+            <tr [class.inactive-row]="!c.isActive">
+              <td>{{ c.name }}</td>
+              <td>{{ typeLabel(c.customerType) }}</td>
+              <td>{{ c.phone ?? '—' }}</td>
+              <td [class.balance-due]="c.outstandingBalance > 0">{{ c.outstandingBalance | number: '1.0-2' }}</td>
+              <td><span class="chip" [class.chip-success]="c.isActive" [class.chip-neutral]="!c.isActive">{{ c.isActive ? 'Active' : 'Inactive' }}</span></td>
+              <td class="row-actions">
+                <button mat-icon-button (click)="openLedger(c)" title="Ledger">
+                  <mat-icon>account_balance_wallet</mat-icon>
+                </button>
+                @if (menuService.can('customers', 'edit')) {
+                  <button mat-icon-button (click)="startEdit(c)"><mat-icon>edit</mat-icon></button>
+                }
+                @if (menuService.can('customers', 'delete')) {
+                  <button mat-icon-button color="warn" (click)="remove(c)"><mat-icon>delete</mat-icon></button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>
