@@ -33,6 +33,6 @@ jobs:
           password: ${{ secrets.PUBLISH_PWD }}
           # Angular 17+ usually outputs to 'dist/<project-name>/browser'
           # Adjust this folder name based on your actual output
-          local-dir: ./dist/FrontEnd/browser/
+          local-dir: ./dist/cloth-pos-frontend/browser/
           server-dir: /wwwroot/
           dangerous-clean-slate: true
