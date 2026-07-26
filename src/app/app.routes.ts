@@ -24,9 +24,14 @@ import { CustomersComponent } from './features/parties/customers/customers.compo
 import { VendorsComponent } from './features/parties/vendors/vendors.component';
 import { GoodsReceiveComponent } from './features/purchases/goods-receive/goods-receive.component';
 import { PurchaseInvoiceComponent } from './features/purchases/purchase-invoice/purchase-invoice.component';
+import { PurchaseReturnComponent } from './features/purchases/purchase-return/purchase-return.component';
 import { ReportsComponent } from './features/reports/reports.component';
 import { PosComponent } from './features/sales/pos/pos.component';
 import { InvoicePrintComponent } from './features/sales/invoice-print/invoice-print.component';
+import { DayClosingComponent } from './features/sales/day-closing/day-closing.component';
+import { OffersComponent } from './features/sales/offers/offers.component';
+import { SalesReturnComponent } from './features/sales/sales-return/sales-return.component';
+import { VoucherPrintComponent } from './features/accounts/voucher-print/voucher-print.component';
 import { SettingsComponent } from './features/settings/settings.component';
 import { ProductVariantsComponent } from './features/products/product-variants/product-variants.component';
 import { ProductsComponent } from './features/products/products.component';
@@ -59,12 +64,18 @@ export const routes: Routes = [
       { path: 'inventory/barcode-print', component: BarcodePrintComponent, data: { menuKey: 'barcode-print' } },
       { path: 'purchases/invoices', component: PurchaseInvoiceComponent, data: { menuKey: 'purchase-invoices' } },
       { path: 'purchases/goods-receive', component: GoodsReceiveComponent, data: { menuKey: 'goods-receive' } },
+      { path: 'purchases/returns', component: PurchaseReturnComponent, data: { menuKey: 'purchase-returns' } },
       { path: 'sales/pos', component: PosComponent, data: { menuKey: 'sales-pos' } },
       { path: 'sales/invoice-print/:id', component: InvoicePrintComponent, data: { menuKey: 'sales-pos' } },
-      { path: 'accounts/customer-ledger', component: LedgerComponent, data: { type: 'customer', menuKey: 'customer-ledger' } },
-      { path: 'accounts/vendor-ledger', component: LedgerComponent, data: { type: 'vendor', menuKey: 'vendor-ledger' } },
+      { path: 'sales/day-closing', component: DayClosingComponent, data: { menuKey: 'day-closing' } },
+      { path: 'sales/returns', component: SalesReturnComponent, data: { menuKey: 'sales-returns' } },
+      { path: 'sales/offers', component: OffersComponent, data: { menuKey: 'sale-offers' } },
+      { path: 'accounts/customer-ledger', component: LedgerComponent, data: { type: 'customer', showTitle: true, menuKey: 'customer-ledger' } },
+      { path: 'accounts/vendor-ledger', component: LedgerComponent, data: { type: 'vendor', showTitle: true, menuKey: 'vendor-ledger' } },
       { path: 'accounts/receipts', component: ReceiptsComponent, data: { menuKey: 'receipts' } },
+      { path: 'accounts/receipts/print/:id', component: VoucherPrintComponent, data: { kind: 'receipt', menuKey: 'receipts' } },
       { path: 'accounts/payments', component: PaymentsComponent, data: { menuKey: 'payments' } },
+      { path: 'accounts/payments/print/:id', component: VoucherPrintComponent, data: { kind: 'payment', menuKey: 'payments' } },
       { path: 'accounts/expenses', component: ExpensesComponent, data: { menuKey: 'expenses' } },
       { path: 'reports', component: ReportsComponent, data: { menuKey: 'reports' } },
       { path: 'settings', component: SettingsComponent, data: { menuKey: 'settings' } },

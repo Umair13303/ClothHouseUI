@@ -8,7 +8,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { environment } from '../../../../environments/environment';
 import { VariantPickerComponent, VariantSearchResult } from '../../../shared/components/variant-picker/variant-picker.component';
+import { ConfirmService } from '../../../core/services/confirm.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { NativeDatePickerDirective } from '../../../shared/directives/native-date-picker.directive';
 
 interface OpeningStockLine {
   variantId: string;
@@ -30,7 +32,7 @@ interface OpeningStockListDto {
 @Component({
   selector: 'app-opening-stock',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, VariantPickerComponent],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, VariantPickerComponent, NativeDatePickerDirective],
   templateUrl: './opening-stock.component.html',
   styleUrl: './opening-stock.component.scss'
 })
@@ -45,7 +47,7 @@ export class OpeningStockComponent implements OnInit {
   loadingHistory = signal(false);
   saving = signal(false);
 
-  constructor(private http: HttpClient, private notify: NotificationService) {}
+  constructor(private http: HttpClient, private notify: NotificationService, private confirm: ConfirmService) {}
 
   ngOnInit(): void {
     this.loadHistory();
@@ -92,6 +94,29 @@ export class OpeningStockComponent implements OnInit {
       return;
     }
 
+    // ADR-001 §5.2: zero-cost lines create estimated-cost stock layers and
+    // show 100% margin until corrected — make the operator confirm on purpose.
+    const zeroCostCount = this.lines.filter((l) => !l.unitCost || l.unitCost === 0).length;
+    if (zeroCostCount > 0) {
+      this.confirm
+        .ask({
+          title: 'Lines with zero cost',
+          message:
+            `${zeroCostCount} line(s) have a unit cost of 0. Their stock value will be recorded as ` +
+            'an estimate of Rs 0 and profit reports will overstate margin until the cost is corrected. Post anyway?',
+          confirmLabel: 'Post anyway',
+          icon: 'warning'
+        })
+        .subscribe((ok) => {
+          if (ok) this.postOpeningStock();
+        });
+      return;
+    }
+
+    this.postOpeningStock();
+  }
+
+  private postOpeningStock(): void {
     this.saving.set(true);
     const payload = {
       referenceNumber: null,

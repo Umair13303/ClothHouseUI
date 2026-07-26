@@ -50,14 +50,23 @@
     <mat-tab label="Profit &amp; Loss">
       <div class="tab-content">
         @if (profitAndLoss(); as pl) {
+          @if (pl.touchesPreCutoverDates) {
+            <p class="banner-warning">This range includes dates before the inventory cutover — historical costs are estimated and frozen, not exact FIFO values.</p>
+          } @else if (pl.hasEstimatedCosts) {
+            <p class="banner-warning">Some figures in this range use estimated costs (returns without a receipt or stock without purchase history).</p>
+          }
           <div class="pl-grid">
             <div><span>Total Sales</span><strong>{{ pl.totalSales | number: '1.0-2' }}</strong></div>
+            <div><span>Sales Returns</span><strong>{{ pl.salesReturns | number: '1.0-2' }}</strong></div>
+            <div><span>Net Sales</span><strong>{{ pl.netSales | number: '1.0-2' }}</strong></div>
             <div><span>Cost of Goods Sold</span><strong>{{ pl.totalCostOfGoodsSold | number: '1.0-2' }}</strong></div>
             <div><span>Gross Profit</span><strong>{{ pl.grossProfit | number: '1.0-2' }}</strong></div>
+            <div><span>Inventory Write-offs</span><strong>{{ pl.inventoryWriteOffs | number: '1.0-2' }}</strong></div>
+            <div><span>Landed Cost Written Off on Purchase Returns</span><strong>{{ pl.purchaseReturnChargesWriteOff | number: '1.0-2' }}</strong></div>
             <div><span>Total Expenses</span><strong>{{ pl.totalExpenses | number: '1.0-2' }}</strong></div>
             <div class="net"><span>Net Profit</span><strong>{{ pl.netProfit | number: '1.0-2' }}</strong></div>
           </div>
-          <p class="hint">Cost of goods sold is approximated using each variant's current last purchase price.</p>
+          <p class="hint">Cost of goods sold uses the exact FIFO cost stamped on each sale at posting time; returns are netted out at their stamped cost.</p>
         }
       </div>
     </mat-tab>

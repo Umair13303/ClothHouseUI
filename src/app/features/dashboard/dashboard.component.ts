@@ -1,8 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { RouterLink } from '@angular/router';
 import { environment } from '../../../environments/environment';
+import { MenuService } from '../../core/services/menu.service';
 import { SalesTrendChartComponent, TrendPoint } from './sales-trend-chart.component';
 
 function today(): string {
@@ -10,11 +14,19 @@ function today(): string {
 }
 
 const TREND_DAYS = 14;
+const TOP_CUSTOMERS_COUNT = 10;
+
+interface OutstandingBalanceDto {
+  partyId: string;
+  partyName: string;
+  phone: string | null;
+  balance: number;
+}
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, MatIconModule, SalesTrendChartComponent],
+  imports: [CommonModule, MatIconModule, MatButtonModule, MatTooltipModule, RouterLink, SalesTrendChartComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
@@ -26,8 +38,9 @@ export class DashboardComponent implements OnInit {
   payables = signal(0);
   lowStockCount = signal(0);
   salesTrend = signal<TrendPoint[]>([]);
+  topOutstandingCustomers = signal<OutstandingBalanceDto[]>([]);
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, public menuService: MenuService) {}
 
   ngOnInit(): void {
     const t = today();
@@ -36,9 +49,11 @@ export class DashboardComponent implements OnInit {
       .get<any[]>(`${this.base}/sales`, { params: { fromDate: t, toDate: t, groupByMonth: false } })
       .subscribe((rows) => this.todaySales.set(rows.reduce((sum, r) => sum + (r.netSales ?? 0), 0)));
 
-    this.http
-      .get<any[]>(`${this.base}/customer-outstanding`)
-      .subscribe((rows) => this.receivables.set(rows.reduce((sum, r) => sum + (r.balance ?? 0), 0)));
+    this.http.get<OutstandingBalanceDto[]>(`${this.base}/customer-outstanding`).subscribe((rows) => {
+      // Already SQL-sorted descending and filtered to Balance > 0 (ReportService.GetCustomerOutstandingAsync) — just take the top slice.
+      this.receivables.set(rows.reduce((sum, r) => sum + (r.balance ?? 0), 0));
+      this.topOutstandingCustomers.set(rows.slice(0, TOP_CUSTOMERS_COUNT));
+    });
 
     this.http
       .get<any[]>(`${this.base}/vendor-outstanding`)

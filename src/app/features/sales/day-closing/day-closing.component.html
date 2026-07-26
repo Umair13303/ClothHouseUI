@@ -1,0 +1,87 @@
+<div class="page">
+  <div class="page-header no-print">
+    <h1>Day Closing (User Wise)</h1>
+    <div class="header-actions">
+      <mat-form-field appearance="outline" class="date-field">
+        <mat-label>Date</mat-label>
+        <input matInput type="date" [(ngModel)]="date" name="date" (change)="load()" />
+      </mat-form-field>
+      <button mat-flat-button color="primary" [disabled]="!report()" (click)="print()">
+        <mat-icon>print</mat-icon>
+        Print Closing Sheet
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <p>Loading…</p>
+  } @else if (report(); as r) {
+    <div class="closing-sheet">
+      <div class="sheet-header print-only">
+        <h2>Daily Sale Closing — {{ r.date | date: 'fullDate' }}</h2>
+        <p>Prepared by: {{ preparedBy }} · Printed {{ now | date: 'medium' }}</p>
+      </div>
+
+      @if (r.users.length === 0) {
+        <p class="empty-state">No sales or receipts recorded on {{ r.date | date: 'mediumDate' }}.</p>
+      } @else {
+        <div class="card table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>User</th>
+                <th class="num">Invoices</th>
+                <th class="num">Gross Sales</th>
+                <th class="num">Discount</th>
+                <th class="num">Net Sales</th>
+                <th class="num">Sale Payments</th>
+                <th class="num">Credit Sales</th>
+                <th class="num">Receipts (Old Balance)</th>
+                <th class="num">Total Collected</th>
+                <th class="num">of which Cash</th>
+                <th>Collections by Method</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (u of r.users; track u.userName) {
+                <tr>
+                  <td class="user-cell">{{ u.userName }}</td>
+                  <td class="num">{{ u.invoiceCount }}</td>
+                  <td class="num">{{ u.grossSales | number: '1.0-2' }}</td>
+                  <td class="num">{{ u.invoiceDiscount | number: '1.0-2' }}</td>
+                  <td class="num">{{ u.netSales | number: '1.0-2' }}</td>
+                  <td class="num">{{ u.salePaymentsCollected | number: '1.0-2' }}</td>
+                  <td class="num">{{ u.creditSales | number: '1.0-2' }}</td>
+                  <td class="num">{{ u.receiptsCollected | number: '1.0-2' }}</td>
+                  <td class="num total">{{ u.totalCollected | number: '1.0-2' }}</td>
+                  <td class="num">{{ u.cashCollected | number: '1.0-2' }}</td>
+                  <td class="breakdown">{{ breakdown(u) }}</td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr>
+                <td>Total</td>
+                <td class="num">{{ r.totals.invoiceCount }}</td>
+                <td class="num">{{ r.totals.grossSales | number: '1.0-2' }}</td>
+                <td class="num">{{ r.totals.invoiceDiscount | number: '1.0-2' }}</td>
+                <td class="num">{{ r.totals.netSales | number: '1.0-2' }}</td>
+                <td class="num">{{ r.totals.salePaymentsCollected | number: '1.0-2' }}</td>
+                <td class="num">{{ r.totals.creditSales | number: '1.0-2' }}</td>
+                <td class="num">{{ r.totals.receiptsCollected | number: '1.0-2' }}</td>
+                <td class="num total">{{ r.totals.totalCollected | number: '1.0-2' }}</td>
+                <td class="num">{{ r.totals.cashCollected | number: '1.0-2' }}</td>
+                <td class="breakdown">{{ breakdown(r.totals) }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="signatures print-only">
+          <div class="signature"><span></span>Cashier</div>
+          <div class="signature"><span></span>Manager</div>
+        </div>
+      }
+    </div>
+  }
+</div>

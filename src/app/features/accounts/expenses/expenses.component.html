@@ -62,17 +62,27 @@
             <th>Amount</th>
             <th>Method</th>
             <th>Remarks</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           @for (e of expenses(); track e.id) {
-            <tr>
+            <tr [class.cancelled-row]="e.status === 'Cancelled'">
               <td class="mono">{{ e.expenseNumber }}</td>
               <td>{{ e.expenseDate | date: 'mediumDate' }}</td>
               <td>{{ e.expenseCategoryName }}</td>
               <td>{{ e.amount | number: '1.0-2' }}</td>
               <td>{{ methodLabel(e.method) }}</td>
               <td>{{ e.remarks ?? '—' }}</td>
+              <td class="row-actions">
+                @if (e.status === 'Cancelled') {
+                  <span class="cancelled-chip">Cancelled</span>
+                } @else {
+                  <button mat-icon-button matTooltip="Cancel expense" (click)="cancel(e)">
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                }
+              </td>
             </tr>
           }
         </tbody>

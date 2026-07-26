@@ -24,7 +24,10 @@ export class AuthService {
   readonly isAuthenticated = computed(() => this.currentUserSignal() !== null);
 
   constructor(private http: HttpClient, private router: Router, private menuService: MenuService) {
-    if (this.currentUserSignal()) this.menuService.load().subscribe();
+    // Deferred: firing the request inside the constructor makes the auth
+    // interceptor inject(AuthService) while it is still being constructed,
+    // which throws before the request ever reaches the network.
+    if (this.currentUserSignal()) queueMicrotask(() => this.menuService.load().subscribe());
   }
 
   login(userName: string, password: string): Observable<AuthResponse> {
@@ -76,6 +79,15 @@ export class AuthService {
 
   private readUser(): User | null {
     const raw = localStorage.getItem(USER_KEY);
-    return raw ? (JSON.parse(raw) as User) : null;
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as User;
+    } catch {
+      // Corrupt leftover from an older session must not kill app bootstrap.
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      return null;
+    }
   }
 }

@@ -13,9 +13,12 @@ export interface VariantSearchResult {
   id: string;
   productId: string;
   productName: string;
+  brandId: string | null;
+  categoryId: string;
   designNumber: string;
   colorId: string | null;
   colorName: string | null;
+  colorHexCode: string | null;
   unitOfMeasureId: string;
   unitOfMeasureName: string;
   barcode: string;
@@ -50,7 +53,16 @@ export interface VariantSearchResult {
       <mat-icon matSuffix>qr_code_scanner</mat-icon>
       <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn" (optionSelected)="select($event.option.value)">
         @for (r of results; track r.id) {
-          <mat-option [value]="r">{{ r.productName }} — {{ r.designNumber }} @if (r.colorName) { ({{ r.colorName }}) } · {{ r.barcode }} · Stock: {{ r.currentStock }}</mat-option>
+          <mat-option [value]="r">
+            {{ r.productName }} — {{ r.designNumber }}
+            @if (r.colorName) {
+              <span class="color-chip">
+                @if (r.colorHexCode) { <span class="swatch" [style.background]="r.colorHexCode"></span> }
+                {{ r.colorName }}
+              </span>
+            }
+            · {{ r.barcode }} · Stock: {{ r.currentStock }}
+          </mat-option>
         }
       </mat-autocomplete>
     </mat-form-field>
@@ -59,6 +71,21 @@ export interface VariantSearchResult {
     `
       .picker {
         width: 100%;
+      }
+
+      .color-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .swatch {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 1px solid rgba(0, 0, 0, 0.25);
+        vertical-align: middle;
       }
     `
   ]

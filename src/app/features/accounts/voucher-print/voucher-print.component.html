@@ -1,0 +1,57 @@
+<div class="voucher-print-page">
+  @if (loading()) {
+    <p class="status-text">Loading…</p>
+  } @else if (notFound()) {
+    <p class="status-text">Voucher not found.</p>
+  }
+
+  @if (voucher(); as v) {
+    <div class="receipt-screen">
+      <div class="receipt-actions no-print">
+        <button mat-flat-button color="primary" (click)="print()">
+          <mat-icon>print</mat-icon>
+          Print
+        </button>
+        <button mat-stroked-button (click)="close()">
+          <mat-icon>close</mat-icon>
+          Close
+        </button>
+      </div>
+
+      <div class="receipt" [class.compact]="receiptPaperWidthMm() === 58" [style.width.mm]="receiptPaperWidthMm()">
+        <div class="receipt-store">
+          <h2>{{ storeName() }}</h2>
+          @if (storeAddress()) { <p class="store-address">{{ storeAddress() }}</p> }
+        </div>
+
+        <p class="voucher-title">{{ v.title }}</p>
+
+        <div class="receipt-meta">
+          <div class="meta-row">
+            <span>{{ v.number }}</span>
+            <span>{{ v.date | date: 'mediumDate' }}</span>
+          </div>
+        </div>
+
+        <div class="voucher-body">
+          <div class="voucher-row"><span>{{ v.partyLabel }}</span><span>{{ v.partyName }}</span></div>
+          <div class="voucher-row amount"><span>Amount</span><span>{{ v.amount | number: '1.0-2' }}</span></div>
+          <div class="voucher-row"><span>Method</span><span>{{ methodLabel(v.method) }}</span></div>
+          @if (v.referenceNumber) {
+            <div class="voucher-row"><span>Reference</span><span>{{ v.referenceNumber }}</span></div>
+          }
+          @if (v.remarks) {
+            <div class="voucher-row"><span>Remarks</span><span>{{ v.remarks }}</span></div>
+          }
+        </div>
+
+        <div class="signatures">
+          <div class="signature"><span></span>Received by</div>
+          <div class="signature"><span></span>Authorized by</div>
+        </div>
+
+        <p class="thanks">{{ v.footer }}</p>
+      </div>
+    </div>
+  }
+</div>

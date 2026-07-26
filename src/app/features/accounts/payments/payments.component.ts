@@ -7,8 +7,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { environment } from '../../../../environments/environment';
+import { NativeDatePickerDirective } from '../../../shared/directives/native-date-picker.directive';
 import { NotificationService } from '../../../core/services/notification.service';
+import { CancelPromptService } from '../../../core/services/cancel-prompt.service';
 
 interface VendorDto {
   id: string;
@@ -18,6 +21,7 @@ interface VendorDto {
 
 /** The API serializes enums by name (JsonStringEnumConverter), not by number. */
 type PaymentMethodValue = 'Cash' | 'DebitCard' | 'CreditCard' | 'BankTransfer' | 'Cheque' | 'JazzCash' | 'EasyPaisa' | 'Other';
+type MoneyDocumentStatusValue = 'Confirmed' | 'Cancelled';
 
 interface PaymentDto {
   id: string;
@@ -28,6 +32,7 @@ interface PaymentDto {
   method: PaymentMethodValue;
   referenceNumber: string | null;
   remarks: string | null;
+  status: MoneyDocumentStatusValue;
 }
 
 const PAYMENT_METHODS: { value: PaymentMethodValue; label: string }[] = [
@@ -44,7 +49,7 @@ const PAYMENT_METHODS: { value: PaymentMethodValue; label: string }[] = [
 @Component({
   selector: 'app-payments',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, MatSelectModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatTooltipModule, NativeDatePickerDirective],
   templateUrl: './payments.component.html',
   styleUrl: './payments.component.scss'
 })
@@ -65,7 +70,7 @@ export class PaymentsComponent implements OnInit {
   referenceNumber = '';
   remarks = '';
 
-  constructor(private http: HttpClient, private notify: NotificationService) {}
+  constructor(private http: HttpClient, private notify: NotificationService, private cancelPrompt: CancelPromptService) {}
 
   ngOnInit(): void {
     this.http.get<VendorDto[]>(`${environment.apiUrl}/vendors`).subscribe((v) => this.vendors.set(v));
@@ -104,12 +109,13 @@ export class PaymentsComponent implements OnInit {
       remarks: this.remarks || null
     };
 
-    this.http.post(this.baseUrl, payload).subscribe({
-      next: () => {
+    this.http.post<PaymentDto>(this.baseUrl, payload).subscribe({
+      next: (created) => {
         this.notify.success('Payment recorded successfully.');
         this.resetForm();
         this.saving.set(false);
         this.loadHistory();
+        this.printSlip(created.id);
       },
       error: (err) => {
         this.notify.error(err?.error?.error ?? 'Failed to record payment.');
@@ -120,6 +126,26 @@ export class PaymentsComponent implements OnInit {
 
   methodLabel(v: PaymentMethodValue): string {
     return this.paymentMethods.find((m) => m.value === v)?.label ?? '—';
+  }
+
+  /** New tab so the form/history stays where the user left it. */
+  printSlip(id: string): void {
+    window.open(`/accounts/payments/print/${id}`, '_blank');
+  }
+
+  cancel(p: PaymentDto): void {
+    this.cancelPrompt
+      .ask({ title: 'Cancel this payment?', message: `Payment ${p.paymentNumber} to ${p.vendorName}, ${p.amount}. This restores the vendor's balance and cannot be undone.` })
+      .subscribe((reason) => {
+        if (!reason) return;
+        this.http.post(`${this.baseUrl}/${p.id}/cancel`, { reason }).subscribe({
+          next: () => {
+            this.notify.success('Payment cancelled.');
+            this.loadHistory();
+          },
+          error: (err) => this.notify.error(err?.error?.error ?? 'Failed to cancel payment.')
+        });
+      });
   }
 
   private resetForm(): void {

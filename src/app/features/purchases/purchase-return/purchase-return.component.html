@@ -1,0 +1,144 @@
+<div class="page">
+  <h1>Purchase Return</h1>
+  <p class="hint">
+    Stock goes back to the vendor from a specific shipment (goods receive), capped by how much of that shipment is
+    still on hand. The vendor is debited the billed price; any freight on the returned units is written off.
+  </p>
+
+  <div class="card">
+    <div class="header-row">
+      <mat-form-field appearance="outline" class="date-field">
+        <mat-label>Return Date</mat-label>
+        <input matInput type="date" [(ngModel)]="returnDate" name="returnDate" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="remarks-field">
+        <mat-label>Remarks</mat-label>
+        <input matInput [(ngModel)]="remarks" name="remarks" />
+      </mat-form-field>
+    </div>
+
+    <app-variant-picker (variantSelected)="onVariantSelected($event)" />
+
+    @if (selectedVariant(); as v) {
+      @if (loadingLayers()) {
+        <p>Loading shipments…</p>
+      } @else if (layers.length > 0) {
+        <p class="section-label">
+          Returnable shipments for <strong>{{ v.productName }} — {{ v.designNumber }}</strong>
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Shipment</th>
+              <th>Received</th>
+              <th>Vendor</th>
+              <th>In Stock From Shipment</th>
+              <th>Billed Price</th>
+              <th>Return Now</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (l of layers; track l.costLayerId) {
+              <tr>
+                <td class="mono">{{ l.receiveNumber }}</td>
+                <td>{{ l.documentDate | date: 'mediumDate' }}</td>
+                <td>{{ l.vendorName }}</td>
+                <td>{{ l.quantityRemaining - pendingFor(l) }}</td>
+                <td>{{ l.unitCostBase | number: '1.2-2' }}</td>
+                <td>
+                  <input type="number" [(ngModel)]="l.returnNow" [max]="l.quantityRemaining - pendingFor(l)" min="0" step="any" class="qty-input" />
+                </td>
+                <td>
+                  <button mat-stroked-button (click)="addLayer(l)">
+                    <mat-icon>add</mat-icon>
+                    Add
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    } @else {
+      <p class="empty-state">Scan or search a product to see which shipments it can be returned from.</p>
+    }
+
+    @if (lines.length > 0) {
+      <p class="section-label">Return to <strong>{{ vendorName }}</strong></p>
+      <table>
+        <thead>
+          <tr>
+            <th>Barcode</th>
+            <th>Product</th>
+            <th>Design #</th>
+            <th>Shipment</th>
+            <th>Quantity</th>
+            <th>Billed Price</th>
+            <th>Vendor Credit</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (l of lines; track $index; let i = $index) {
+            <tr>
+              <td class="mono">{{ l.barcode }}</td>
+              <td>{{ l.productName }}</td>
+              <td>{{ l.designNumber }}</td>
+              <td class="mono">{{ l.receiveNumber }}</td>
+              <td>{{ l.quantity }}</td>
+              <td>{{ l.unitCostBase | number: '1.2-2' }}</td>
+              <td>{{ l.quantity * l.unitCostBase | number: '1.2-2' }}</td>
+              <td>
+                <button mat-icon-button (click)="removeLine(i)" title="Remove line">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <div class="form-actions">
+        <span class="total">Vendor credit: {{ totalVendorCredit | number: '1.2-2' }}</span>
+        <button mat-flat-button color="primary" [disabled]="saving()" (click)="submit()">
+          <mat-icon>keyboard_return</mat-icon>
+          Post Purchase Return
+        </button>
+      </div>
+    }
+  </div>
+
+  <h2>Recent Purchase Returns</h2>
+  <div class="card">
+    @if (loadingHistory()) {
+      <p>Loading…</p>
+    } @else if (history().length === 0) {
+      <p class="empty-state">No purchase returns yet.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Return #</th>
+            <th>Date</th>
+            <th>Vendor</th>
+            <th>Items</th>
+            <th>Vendor Credit</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (h of history(); track h.id) {
+            <tr>
+              <td class="mono">{{ h.returnNumber }}</td>
+              <td>{{ h.returnDate | date: 'mediumDate' }}</td>
+              <td>{{ h.vendorName }}</td>
+              <td>{{ h.items.length }}</td>
+              <td>{{ h.totalVendorCredit | number: '1.2-2' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

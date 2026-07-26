@@ -15,6 +15,7 @@ import { environment } from '../../../../environments/environment';
 import { VariantPickerComponent, VariantSearchResult } from '../../../shared/components/variant-picker/variant-picker.component';
 import { NotificationService } from '../../../core/services/notification.service';
 import { DailySalesDialogComponent } from '../../../shared/components/daily-sales-dialog/daily-sales-dialog.component';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { AuthService } from '../../../core/services/auth.service';
 
 interface CustomerDto {
@@ -31,11 +32,32 @@ interface CartLine {
   barcode: string;
   productName: string;
   designNumber: string;
+  colorName: string | null;
+  colorHexCode: string | null;
   unitName: string;
   quantity: number;
   unitPrice: number;
   lineDiscount: number;
   availableStock: number;
+  productId: string;
+  brandId: string | null;
+  categoryId: string;
+  /** Set while an auto-applied sale offer drives lineDiscount; cleared when the cashier edits the discount by hand. */
+  offerName: string | null;
+  offerPercent: number;
+}
+
+/** The API serializes enums by name (JsonStringEnumConverter), not by number. */
+type OfferScopeValue = 'All' | 'Brand' | 'Category' | 'Product';
+
+interface SaleOfferDto {
+  id: string;
+  name: string;
+  discountPercent: number;
+  scope: OfferScopeValue;
+  brandId: string | null;
+  categoryId: string | null;
+  productId: string | null;
 }
 
 /** The API serializes enums by name (JsonStringEnumConverter), not by number. */
@@ -105,8 +127,11 @@ export class PosComponent implements OnInit {
     return this.auth.currentUser()?.fullName ?? '';
   }
 
+  activeOffers = signal<SaleOfferDto[]>([]);
+
   ngOnInit(): void {
     this.http.get<CustomerDto[]>(`${environment.apiUrl}/customers`).subscribe((c) => this.customers.set(c));
+    this.http.get<SaleOfferDto[]>(`${environment.apiUrl}/saleoffers/active`).subscribe((o) => this.activeOffers.set(o));
     this.http
       .get<{ name: string; address: string | null; receiptPaperWidthMm: number }>(`${environment.apiUrl}/settings/store`)
       .subscribe((s) => {
@@ -142,22 +167,79 @@ export class PosComponent implements OnInit {
   }
 
   addVariant(v: VariantSearchResult): void {
+    if (v.currentStock <= 0) {
+      this.dialog.open(ConfirmDialogComponent, {
+        width: '400px',
+        data: {
+          title: 'Out of Stock',
+          message: `"${v.productName} — ${v.designNumber}${v.colorName ? ' (' + v.colorName + ')' : ''}" has 0 stock and cannot be sold. Receive stock first (Purchases → Goods Receive) or adjust stock.`,
+          alertOnly: true,
+          danger: true,
+          icon: 'production_quantity_limits'
+        }
+      });
+      return;
+    }
     const existing = this.cart.find((l) => l.variantId === v.id);
     if (existing) {
       existing.quantity += 1;
+      this.reapplyOffer(existing);
       return;
     }
-    this.cart.push({
+    const line: CartLine = {
       variantId: v.id,
       barcode: v.barcode,
       productName: v.productName,
       designNumber: v.designNumber,
+      colorName: v.colorName,
+      colorHexCode: v.colorHexCode,
       unitName: v.unitOfMeasureName,
       quantity: 1,
       unitPrice: v.defaultSalePrice,
       lineDiscount: 0,
-      availableStock: v.currentStock
-    });
+      availableStock: v.currentStock,
+      productId: v.productId,
+      brandId: v.brandId,
+      categoryId: v.categoryId,
+      offerName: null,
+      offerPercent: 0
+    };
+    this.applyBestOffer(line);
+    this.cart.push(line);
+  }
+
+  /** Highest-percentage running offer whose scope covers this line, if any. */
+  private bestOfferFor(l: CartLine): SaleOfferDto | undefined {
+    return this.activeOffers()
+      .filter((o) =>
+        o.scope === 'All' ||
+        (o.scope === 'Product' && o.productId === l.productId) ||
+        (o.scope === 'Brand' && o.brandId === l.brandId) ||
+        (o.scope === 'Category' && o.categoryId === l.categoryId))
+      .sort((a, b) => b.discountPercent - a.discountPercent)[0];
+  }
+
+  private applyBestOffer(l: CartLine): void {
+    const offer = this.bestOfferFor(l);
+    if (!offer) return;
+    l.offerName = offer.name;
+    l.offerPercent = offer.discountPercent;
+    l.lineDiscount = this.offerDiscountAmount(l);
+  }
+
+  private offerDiscountAmount(l: CartLine): number {
+    return Math.round(l.quantity * l.unitPrice * l.offerPercent) / 100;
+  }
+
+  /** Keeps an auto-applied offer's amount in sync when qty/price change. */
+  reapplyOffer(l: CartLine): void {
+    if (l.offerName) l.lineDiscount = this.offerDiscountAmount(l);
+  }
+
+  /** A hand-typed discount takes over from the offer for that line. */
+  onManualDiscount(l: CartLine): void {
+    l.offerName = null;
+    l.offerPercent = 0;
   }
 
   removeLine(i: number): void {

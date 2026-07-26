@@ -31,11 +31,26 @@
               @for (l of cart; track l.variantId; let i = $index) {
                 <tr [class.over-stock]="l.quantity > l.availableStock">
                   <td>{{ l.productName }}<div class="mono small">{{ l.barcode }}</div></td>
-                  <td>{{ l.designNumber }}</td>
+                  <td>
+                    {{ l.designNumber }}
+                    @if (l.colorName) {
+                      <div class="line-color">
+                        @if (l.colorHexCode) { <span class="swatch" [style.background]="l.colorHexCode"></span> }
+                        {{ l.colorName }}
+                      </div>
+                    }
+                  </td>
                   <td>{{ l.unitName }}</td>
-                  <td><input type="number" [(ngModel)]="l.quantity" min="1" class="qty-input" /></td>
-                  <td><input type="number" [(ngModel)]="l.unitPrice" min="0" class="qty-input" /></td>
-                  <td><input type="number" [(ngModel)]="l.lineDiscount" min="0" class="qty-input" /></td>
+                  <td><input type="number" [(ngModel)]="l.quantity" (ngModelChange)="reapplyOffer(l)" min="1" class="qty-input" /></td>
+                  <td><input type="number" [(ngModel)]="l.unitPrice" (ngModelChange)="reapplyOffer(l)" min="0" class="qty-input" /></td>
+                  <td>
+                    <input type="number" [(ngModel)]="l.lineDiscount" (ngModelChange)="onManualDiscount(l)" min="0" class="qty-input" />
+                    @if (l.offerName) {
+                      <div class="offer-tag" [matTooltip]="l.offerPercent + '% off — ' + l.offerName">
+                        <mat-icon inline>percent</mat-icon>{{ l.offerName }}
+                      </div>
+                    }
+                  </td>
                   <td>{{ lineTotal(l) | number: '1.0-2' }}</td>
                   <td><button mat-icon-button color="warn" (click)="removeLine(i)"><mat-icon>close</mat-icon></button></td>
                 </tr>

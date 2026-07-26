@@ -70,17 +70,30 @@
             <th>Amount</th>
             <th>Method</th>
             <th>Reference</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           @for (p of payments(); track p.id) {
-            <tr>
+            <tr [class.cancelled-row]="p.status === 'Cancelled'">
               <td class="mono">{{ p.paymentNumber }}</td>
               <td>{{ p.paymentDate | date: 'mediumDate' }}</td>
               <td>{{ p.vendorName }}</td>
               <td>{{ p.amount | number: '1.0-2' }}</td>
               <td>{{ methodLabel(p.method) }}</td>
               <td>{{ p.referenceNumber ?? '—' }}</td>
+              <td class="row-actions">
+                @if (p.status === 'Cancelled') {
+                  <span class="cancelled-chip">Cancelled</span>
+                } @else {
+                  <button mat-icon-button matTooltip="Print payment slip" (click)="printSlip(p.id)">
+                    <mat-icon>print</mat-icon>
+                  </button>
+                  <button mat-icon-button matTooltip="Cancel payment" (click)="cancel(p)">
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                }
+              </td>
             </tr>
           }
         </tbody>

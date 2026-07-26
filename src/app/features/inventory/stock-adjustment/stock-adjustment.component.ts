@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { environment } from '../../../../environments/environment';
 import { VariantPickerComponent, VariantSearchResult } from '../../../shared/components/variant-picker/variant-picker.component';
 import { NotificationService } from '../../../core/services/notification.service';
+import { NativeDatePickerDirective } from '../../../shared/directives/native-date-picker.directive';
 
 interface AdjustmentLine {
   variantId: string;
@@ -24,13 +25,13 @@ interface StockAdjustmentListDto {
   referenceNumber: string;
   adjustmentDate: string;
   reason: string;
-  items: { quantityChange: number }[];
+  items: { quantityChange: number; unitCost: number; totalCost: number }[];
 }
 
 @Component({
   selector: 'app-stock-adjustment',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, VariantPickerComponent],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, VariantPickerComponent, NativeDatePickerDirective],
   templateUrl: './stock-adjustment.component.html',
   styleUrl: './stock-adjustment.component.scss'
 })
@@ -100,9 +101,14 @@ export class StockAdjustmentComponent implements OnInit {
       items: this.lines.map((l) => ({ productVariantId: l.variantId, quantityChange: l.quantityChange }))
     };
 
-    this.http.post(this.baseUrl, payload).subscribe({
-      next: () => {
+    this.http.post<StockAdjustmentListDto>(this.baseUrl, payload).subscribe({
+      next: (posted) => {
         this.notify.success('Stock adjustment posted successfully.');
+        // ADR-001 §9.4 rule 4: an increase that could only be costed at zero
+        // must be surfaced — it will show 100% margin until corrected.
+        if (posted.items.some((i) => i.quantityChange > 0 && i.unitCost === 0)) {
+          this.notify.error('Some added stock has no known cost and was posted at zero value — correct it once the real cost is known.');
+        }
         this.lines = [];
         this.reason = '';
         this.saving.set(false);

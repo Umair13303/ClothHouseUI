@@ -1,0 +1,76 @@
+.page {
+  max-width: 1200px;
+}
+
+h1 {
+  font-size: 22px;
+  margin: 0 0 4px;
+}
+
+h2 {
+  font-size: 18px;
+  margin: 28px 0 12px;
+}
+
+.hint {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  margin: 0 0 20px;
+  max-width: 700px;
+}
+
+.header-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.date-field {
+  width: 200px;
+}
+
+.remarks-field {
+  flex: 1;
+  min-width: 200px;
+}
+
+.section-label {
+  margin: 16px 0 4px;
+  font-size: 14px;
+}
+
+table {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.mono {
+  font-family: 'Consolas', monospace;
+  font-size: 13px;
+}
+
+.qty-input {
+  width: 90px;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 14px;
+}
+
+.form-actions {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  .total {
+    font-weight: 600;
+  }
+}
+
+.empty-state {
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 24px 0;
+}

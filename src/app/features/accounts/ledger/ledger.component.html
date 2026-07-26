@@ -4,54 +4,183 @@
   }
 
   <div class="card">
-    <mat-form-field appearance="outline" class="party-field">
-      <mat-label>{{ type === 'customer' ? 'Customer' : 'Vendor' }}</mat-label>
-      <mat-select [(ngModel)]="selectedPartyId" (ngModelChange)="onPartyChange()" name="partyId">
-        @for (p of parties(); track p.id) {
-          <mat-option [value]="p.id">{{ p.name }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+    <div class="controls no-print">
+      @if (showTitle) {
+        <mat-form-field appearance="outline" class="party-field">
+          <mat-label>{{ type === 'customer' ? 'Customer' : 'Vendor' }}</mat-label>
+          <input
+            matInput
+            [(ngModel)]="partySearchText"
+            name="partySearch"
+            [matAutocomplete]="partyAuto"
+            (blur)="onPartySearchBlur()"
+            placeholder="Type to search…"
+          />
+          <mat-icon matSuffix>search</mat-icon>
+          <mat-autocomplete #partyAuto="matAutocomplete" (optionSelected)="onPartySelected($event)">
+            @for (p of filteredParties; track p.id) {
+              <mat-option [value]="p">
+                {{ p.name }}
+                <span class="option-balance" [class.balance-due]="p.outstandingBalance > 0">
+                  {{ p.outstandingBalance | number: '1.0-2' }}
+                </span>
+              </mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+      } @else if (selectedParty; as sp) {
+        <div class="party-heading">{{ sp.name }}</div>
+      }
 
-    @if (selectedParty; as sp) {
-      <div class="balance-summary" [class.balance-due]="sp.outstandingBalance > 0">
-        Current Outstanding Balance: <strong>{{ sp.outstandingBalance | number: '1.0-2' }}</strong>
+      <mat-form-field appearance="outline" class="date-field">
+        <mat-label>From</mat-label>
+        <input matInput type="date" [(ngModel)]="fromDate" (change)="onRangeChange()" name="fromDate" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="date-field">
+        <mat-label>To</mat-label>
+        <input matInput type="date" [(ngModel)]="toDate" (change)="onRangeChange()" name="toDate" />
+      </mat-form-field>
+
+      @if (selectedPartyId && menuService.can(type === 'customer' ? 'customer-ledger' : 'vendor-ledger', 'add')) {
+        <button mat-stroked-button (click)="openAdjustmentDialog()">
+          <mat-icon>tune</mat-icon> New Adjustment
+        </button>
+      }
+
+      @if (statement() && showTitle) {
+        <button mat-stroked-button (click)="print()" class="print-button">
+          <mat-icon>print</mat-icon> Print
+        </button>
+      }
+    </div>
+
+    @if (selectedPartyId) {
+      <div class="preset-row no-print">
+        <button mat-stroked-button [class.active]="activePreset === 'today'" (click)="setDatePreset('today')">Today</button>
+        <button mat-stroked-button [class.active]="activePreset === 'week'" (click)="setDatePreset('week')">This Week</button>
+        <button mat-stroked-button [class.active]="activePreset === 'month'" (click)="setDatePreset('month')">This Month</button>
+        <button mat-stroked-button [class.active]="activePreset === 'year'" (click)="setDatePreset('year')">This Year</button>
+        <button mat-stroked-button [class.active]="activePreset === 'all'" (click)="setDatePreset('all')">All Time</button>
       </div>
     }
 
     @if (loading()) {
-      <p>Loading…</p>
+      <div class="loading-state"><mat-spinner diameter="32"></mat-spinner></div>
     } @else if (!selectedPartyId) {
-      <p class="empty-state">Select a {{ type }} above to view their ledger.</p>
-    } @else if (entries().length === 0) {
-      <p class="empty-state">No ledger entries yet.</p>
-    } @else {
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Type</th>
-            <th>Source</th>
-            <th>Debit</th>
-            <th>Credit</th>
-            <th>Running Balance</th>
-            <th>Remarks</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (e of entries(); track e.id) {
-            <tr>
-              <td>{{ e.entryDate | date: 'mediumDate' }}</td>
-              <td>{{ entryTypeLabel(e.entryType) }}</td>
-              <td>{{ e.sourceDocumentType }}</td>
-              <td>{{ e.debit > 0 ? (e.debit | number: '1.0-2') : '—' }}</td>
-              <td>{{ e.credit > 0 ? (e.credit | number: '1.0-2') : '—' }}</td>
-              <td [class.balance-due]="e.runningBalance > 0">{{ e.runningBalance | number: '1.0-2' }}</td>
-              <td>{{ e.remarks ?? '—' }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
+      <p class="empty-state">Select a {{ type }} above to view their khata.</p>
+    } @else if (statement(); as s) {
+      @if (s.totalRows === 0 && s.openingBalance === 0) {
+        <p class="empty-state">No ledger entries in this range.</p>
+      } @else {
+        <div class="summary-grid no-print">
+          <div class="summary-tile summary-tile--neutral">
+            <span class="summary-icon"><mat-icon>flag</mat-icon></span>
+            <div>
+              <p class="summary-label">Opening Balance</p>
+              <p class="summary-value" [class.balance-due]="s.openingBalance > 0">{{ s.openingBalance | number: '1.0-2' }}</p>
+            </div>
+          </div>
+
+          <div class="summary-tile" [class.summary-tile--danger]="netChange > 0" [class.summary-tile--success]="netChange < 0">
+            <span class="summary-icon"><mat-icon>{{ netChange >= 0 ? 'trending_up' : 'trending_down' }}</mat-icon></span>
+            <div>
+              <p class="summary-label">Net Change</p>
+              <p class="summary-value">{{ netChange > 0 ? '+' : '' }}{{ netChange | number: '1.0-2' }}</p>
+            </div>
+          </div>
+
+          <div class="summary-tile summary-tile--primary">
+            <span class="summary-icon"><mat-icon>account_balance_wallet</mat-icon></span>
+            <div>
+              <p class="summary-label">Closing Balance</p>
+              <p class="summary-value" [class.balance-due]="s.closingBalance > 0">{{ s.closingBalance | number: '1.0-2' }}</p>
+            </div>
+          </div>
+
+          <div class="summary-tile summary-tile--neutral">
+            <span class="summary-icon"><mat-icon>receipt_long</mat-icon></span>
+            <div>
+              <p class="summary-label">Entries</p>
+              <p class="summary-value">{{ s.totalRows }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="statement-header print-only">
+          <div class="store-block">
+            <h1>{{ storeName() }}</h1>
+            @if (storeAddress()) { <p class="store-address">{{ storeAddress() }}</p> }
+          </div>
+          <h2 class="statement-title">Statement of Account — {{ type === 'customer' ? 'Customer' : 'Vendor' }}</h2>
+          <div class="statement-meta">
+            <div>
+              <span class="label">Account</span>
+              <span class="value">{{ s.partyName }}</span>
+            </div>
+            <div>
+              <span class="label">Period</span>
+              <span class="value">{{ s.fromDate | date: 'mediumDate' }} – {{ s.toDate | date: 'mediumDate' }}</span>
+            </div>
+            <div>
+              <span class="label">Printed on</span>
+              <span class="value">{{ today | date: 'medium' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Source</th>
+                <th>Debit</th>
+                <th>Credit</th>
+                <th>Running Balance</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (showOpeningLine) {
+                <tr class="opening-row">
+                  <td>{{ s.fromDate | date: 'mediumDate' }}</td>
+                  <td colspan="4">Balance brought forward</td>
+                  <td [class.balance-due]="s.openingBalance > 0">{{ s.openingBalance | number: '1.0-2' }}</td>
+                  <td></td>
+                </tr>
+              }
+              @for (e of s.rows; track e.entryId) {
+                <tr>
+                  <td>{{ e.entryDate | date: 'mediumDate' }}</td>
+                  <td><span class="chip" [ngClass]="entryTypeChipClass(e.entryType)">{{ entryTypeLabel(e.entryType) }}</span></td>
+                  <td>{{ e.sourceDocumentType }}</td>
+                  <td>{{ e.debit > 0 ? (e.debit | number: '1.0-2') : '—' }}</td>
+                  <td>{{ e.credit > 0 ? (e.credit | number: '1.0-2') : '—' }}</td>
+                  <td [class.balance-due]="e.runningBalance > 0">{{ e.runningBalance | number: '1.0-2' }}</td>
+                  <td>{{ e.remarks ?? '—' }}</td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr class="closing-row">
+                <td colspan="5">Closing balance</td>
+                <td [class.balance-due]="s.closingBalance > 0">{{ s.closingBalance | number: '1.0-2' }}</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        @if (totalPages > 1) {
+          <div class="pager no-print">
+            <button mat-stroked-button [disabled]="page <= 1" (click)="goToPage(page - 1)">Previous</button>
+            <span>Page {{ page }} of {{ totalPages }} ({{ s.totalRows }} entries)</span>
+            <button mat-stroked-button [disabled]="page >= totalPages" (click)="goToPage(page + 1)">Next</button>
+          </div>
+        }
+      }
     }
   </div>
 </div>

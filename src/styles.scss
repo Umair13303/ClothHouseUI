@@ -53,6 +53,10 @@ html {
   --mat-form-field-outlined-hover-label-text-color: #334155;
   --mat-form-field-outlined-focus-label-text-color: var(--mat-sys-primary);
   --mat-form-field-outlined-label-text-weight: 500;
+  // Labels float permanently (MAT_FORM_FIELD_DEFAULT_OPTIONS floatLabel:
+  // 'always' in app.config.ts) — nudge the floated size up from M3's 12px
+  // so field names stay comfortably readable on data-entry screens.
+  --mat-form-field-outlined-label-text-populated-size: 13px;
   --mat-select-enabled-arrow-color: #64748b;
   --mat-select-focused-arrow-color: var(--mat-sys-primary);
 
@@ -370,7 +374,15 @@ table {
   box-shadow: var(--shadow-sm);
 }
 
-input[type="text"], input[type="number"], input[type="password"], select {
+// Plain (non-Material) inputs only, e.g. the POS cart's qty/price/discount
+// boxes. matInput elements are excluded — inside a mat-form-field this
+// padding/border would draw a second inner box and stretch the field taller
+// than the 40px the form-field tokens above prescribe.
+input[type="text"]:not(.mat-mdc-input-element),
+input[type="number"]:not(.mat-mdc-input-element),
+input[type="password"]:not(.mat-mdc-input-element),
+input[type="date"]:not(.mat-mdc-input-element),
+select {
   padding: 9px 12px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -381,10 +393,23 @@ input[type="text"], input[type="number"], input[type="password"], select {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus, select:focus {
+input[type="text"]:not(.mat-mdc-input-element):focus,
+input[type="number"]:not(.mat-mdc-input-element):focus,
+input[type="password"]:not(.mat-mdc-input-element):focus,
+input[type="date"]:not(.mat-mdc-input-element):focus,
+select:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+// Material's input reset hides the native calendar indicator on date
+// inputs; bring it back so date fields visibly offer a picker (the
+// NativeDatePickerDirective also opens it on click/focus anywhere in the field).
+input.mat-mdc-input-element[type='date']::-webkit-calendar-picker-indicator {
+  display: inline-block;
+  opacity: 0.55;
+  cursor: pointer;
 }
 
 html, body { height: 100%; }

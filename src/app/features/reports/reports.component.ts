@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { environment } from '../../../environments/environment';
+import { NativeDatePickerDirective } from '../../shared/directives/native-date-picker.directive';
 
 function firstOfMonth(): string {
   const d = new Date();
@@ -21,7 +22,7 @@ function today(): string {
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatTabsModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatTabsModule, NativeDatePickerDirective],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss'
 })

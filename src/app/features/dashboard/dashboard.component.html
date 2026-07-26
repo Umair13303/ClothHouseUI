@@ -40,4 +40,49 @@
     </div>
     <app-sales-trend-chart [data]="salesTrend()"></app-sales-trend-chart>
   </div>
+
+  <div class="card top-customers-card">
+    <div class="trend-header">
+      <h2>Top Outstanding Customers</h2>
+      <span class="trend-subtitle">Highest receivables first</span>
+    </div>
+
+    @if (topOutstandingCustomers().length === 0) {
+      <p class="empty-state">No outstanding balances.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Outstanding Balance</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of topOutstandingCustomers(); track c.partyId; let i = $index) {
+            <tr>
+              <td class="rank">{{ i + 1 }}</td>
+              <td>{{ c.partyName }}</td>
+              <td>{{ c.phone ?? '—' }}</td>
+              <td class="balance-due">{{ c.balance | number: '1.0-2' }}</td>
+              <td class="row-actions">
+                @if (menuService.canView('customer-ledger')) {
+                  <button
+                    mat-icon-button
+                    matTooltip="View ledger"
+                    [routerLink]="['/accounts/customer-ledger']"
+                    [queryParams]="{ id: c.partyId }"
+                  >
+                    <mat-icon>account_balance_wallet</mat-icon>
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
 </div>

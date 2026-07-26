@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { environment } from '../../../../environments/environment';
 import { NotificationService } from '../../../core/services/notification.service';
+import { NativeDatePickerDirective } from '../../../shared/directives/native-date-picker.directive';
 
 interface PurchaseInvoiceItem {
   id: string;
@@ -47,7 +48,7 @@ interface GoodsReceiveListDto {
 @Component({
   selector: 'app-goods-receive',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, MatSelectModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, MatSelectModule, NativeDatePickerDirective],
   templateUrl: './goods-receive.component.html',
   styleUrl: './goods-receive.component.scss'
 })

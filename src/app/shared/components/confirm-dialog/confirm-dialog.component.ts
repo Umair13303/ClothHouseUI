@@ -9,6 +9,10 @@ export interface ConfirmDialogData {
   confirmLabel?: string;
   cancelLabel?: string;
   danger?: boolean;
+  /** Informational popup: hides the cancel button (confirm defaults to "OK"). */
+  alertOnly?: boolean;
+  /** Overrides the badge icon (defaults to help/delete based on danger). */
+  icon?: string;
 }
 
 @Component({
@@ -18,14 +22,16 @@ export interface ConfirmDialogData {
   template: `
     <div class="confirm-dialog" [class.danger]="data.danger">
       <div class="icon-badge">
-        <mat-icon>{{ data.danger ? 'delete_forever' : 'help_outline' }}</mat-icon>
+        <mat-icon>{{ data.icon ?? (data.danger ? 'delete_forever' : 'help_outline') }}</mat-icon>
       </div>
       <h2 mat-dialog-title>{{ data.title }}</h2>
       <mat-dialog-content>{{ data.message }}</mat-dialog-content>
       <mat-dialog-actions align="end">
-        <button mat-stroked-button [mat-dialog-close]="false">{{ data.cancelLabel ?? 'Cancel' }}</button>
+        @if (!data.alertOnly) {
+          <button mat-stroked-button [mat-dialog-close]="false">{{ data.cancelLabel ?? 'Cancel' }}</button>
+        }
         <button mat-flat-button [color]="data.danger ? 'warn' : 'primary'" [mat-dialog-close]="true" cdkFocusInitial>
-          {{ data.confirmLabel ?? 'Confirm' }}
+          {{ data.confirmLabel ?? (data.alertOnly ? 'OK' : 'Confirm') }}
         </button>
       </mat-dialog-actions>
     </div>

@@ -51,8 +51,8 @@ export interface LedgerDialogData {
     }
 
     mat-dialog-content {
-      min-width: 640px;
       padding-top: 4px;
+      max-height: 72vh;
     }
   `]
 })

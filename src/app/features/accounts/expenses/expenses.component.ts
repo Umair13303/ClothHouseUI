@@ -7,8 +7,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { environment } from '../../../../environments/environment';
 import { NotificationService } from '../../../core/services/notification.service';
+import { NativeDatePickerDirective } from '../../../shared/directives/native-date-picker.directive';
+import { CancelPromptService } from '../../../core/services/cancel-prompt.service';
 
 interface ExpenseCategoryDto {
   id: string;
@@ -17,6 +20,7 @@ interface ExpenseCategoryDto {
 
 /** The API serializes enums by name (JsonStringEnumConverter), not by number. */
 type PaymentMethodValue = 'Cash' | 'DebitCard' | 'CreditCard' | 'BankTransfer' | 'Cheque' | 'JazzCash' | 'EasyPaisa' | 'Other';
+type MoneyDocumentStatusValue = 'Confirmed' | 'Cancelled';
 
 interface ExpenseDto {
   id: string;
@@ -26,6 +30,7 @@ interface ExpenseDto {
   amount: number;
   method: PaymentMethodValue;
   remarks: string | null;
+  status: MoneyDocumentStatusValue;
 }
 
 const PAYMENT_METHODS: { value: PaymentMethodValue; label: string }[] = [
@@ -42,7 +47,7 @@ const PAYMENT_METHODS: { value: PaymentMethodValue; label: string }[] = [
 @Component({
   selector: 'app-expenses',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, MatSelectModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatTooltipModule, NativeDatePickerDirective],
   templateUrl: './expenses.component.html',
   styleUrl: './expenses.component.scss'
 })
@@ -62,7 +67,7 @@ export class ExpensesComponent implements OnInit {
   method: PaymentMethodValue = 'Cash';
   remarks = '';
 
-  constructor(private http: HttpClient, private notify: NotificationService) {}
+  constructor(private http: HttpClient, private notify: NotificationService, private cancelPrompt: CancelPromptService) {}
 
   ngOnInit(): void {
     this.http.get<ExpenseCategoryDto[]>(`${environment.apiUrl}/expensecategories`).subscribe((c) => this.categories.set(c));
@@ -112,6 +117,21 @@ export class ExpensesComponent implements OnInit {
 
   methodLabel(v: PaymentMethodValue): string {
     return this.paymentMethods.find((m) => m.value === v)?.label ?? '—';
+  }
+
+  cancel(e: ExpenseDto): void {
+    this.cancelPrompt
+      .ask({ title: 'Cancel this expense?', message: `Expense ${e.expenseNumber}, ${e.amount}. This cannot be undone.` })
+      .subscribe((reason) => {
+        if (!reason) return;
+        this.http.post(`${this.baseUrl}/${e.id}/cancel`, { reason }).subscribe({
+          next: () => {
+            this.notify.success('Expense cancelled.');
+            this.loadHistory();
+          },
+          error: (err) => this.notify.error(err?.error?.error ?? 'Failed to cancel expense.')
+        });
+      });
   }
 
   private resetForm(): void {

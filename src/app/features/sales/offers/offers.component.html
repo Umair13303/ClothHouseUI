@@ -1,0 +1,124 @@
+<div class="page">
+  <h1>Sale Offers (Special Discounts)</h1>
+
+  <div class="card form-card">
+    <form (ngSubmit)="submit()" class="form-grid">
+      <mat-form-field appearance="outline" class="span-2">
+        <mat-label>Offer Name</mat-label>
+        <input matInput [(ngModel)]="name" name="name" required placeholder="e.g. Eid Sale 20% Off" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Discount %</mat-label>
+        <input matInput type="number" [(ngModel)]="discountPercent" name="discountPercent" required min="0.01" max="100" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Applies To</mat-label>
+        <mat-select [(ngModel)]="scope" name="scope">
+          @for (s of scopes; track s.value) {
+            <mat-option [value]="s.value">{{ s.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      @if (scope === 'Brand') {
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Brand</mat-label>
+          <mat-select [(ngModel)]="brandId" name="brandId" required>
+            @for (b of brands(); track b.id) {
+              <mat-option [value]="b.id">{{ b.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      } @else if (scope === 'Category') {
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Category</mat-label>
+          <mat-select [(ngModel)]="categoryId" name="categoryId" required>
+            @for (c of categories(); track c.id) {
+              <mat-option [value]="c.id">{{ c.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      } @else if (scope === 'Product') {
+        <mat-form-field appearance="outline" class="span-2">
+          <mat-label>Product</mat-label>
+          <mat-select [(ngModel)]="productId" name="productId" required>
+            @for (p of products(); track p.id) {
+              <mat-option [value]="p.id">{{ p.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+
+      <mat-form-field appearance="outline">
+        <mat-label>Start Date</mat-label>
+        <input matInput type="date" [(ngModel)]="startDate" name="startDate" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>End Date (inclusive)</mat-label>
+        <input matInput type="date" [(ngModel)]="endDate" name="endDate" />
+      </mat-form-field>
+
+      <mat-slide-toggle [(ngModel)]="isActive" name="isActive" class="span-2">Active</mat-slide-toggle>
+
+      <div class="form-actions span-2">
+        <button type="submit" mat-flat-button color="primary" [disabled]="saving()">
+          <mat-icon>percent</mat-icon>
+          {{ editingId ? 'Update Offer' : 'Create Offer' }}
+        </button>
+        @if (editingId) {
+          <button type="button" mat-stroked-button (click)="cancelEdit()">Cancel</button>
+        }
+      </div>
+    </form>
+  </div>
+
+  <h2>All Offers</h2>
+  <div class="card">
+    @if (loading()) {
+      <p>Loading…</p>
+    } @else if (offers().length === 0) {
+      <p class="empty-state">No offers yet. Create one above — the POS applies running offers automatically.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Offer</th>
+            <th>Discount</th>
+            <th>Applies To</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (o of offers(); track o.id) {
+            <tr>
+              <td>{{ o.name }}</td>
+              <td>{{ o.discountPercent | number: '1.0-2' }}%</td>
+              <td>{{ scopeTarget(o) }}</td>
+              <td>{{ o.startDate | date: 'mediumDate' }}</td>
+              <td>{{ o.endDate | date: 'mediumDate' }}</td>
+              <td>
+                @if (o.isCurrentlyRunning) {
+                  <span class="badge running">Running</span>
+                } @else if (o.isActive) {
+                  <span class="badge scheduled">Scheduled / Ended</span>
+                } @else {
+                  <span class="badge inactive">Inactive</span>
+                }
+              </td>
+              <td class="row-actions">
+                <button mat-icon-button matTooltip="Edit" (click)="edit(o)"><mat-icon>edit</mat-icon></button>
+                <button mat-icon-button color="warn" matTooltip="Delete" (click)="remove(o)"><mat-icon>delete</mat-icon></button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

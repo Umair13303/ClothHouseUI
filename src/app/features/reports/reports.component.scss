@@ -83,3 +83,13 @@ table {
   font-size: 12px;
   margin-top: 10px;
 }
+
+.banner-warning {
+  background: var(--color-danger-bg, #fff4e5);
+  color: var(--color-danger, #8a5300);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  max-width: 600px;
+  margin: 0 0 12px;
+}

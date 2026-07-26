@@ -1,0 +1,86 @@
+<div class="dialog-header">
+  <span class="icon-badge"><mat-icon>tune</mat-icon></span>
+  <h2 mat-dialog-title>Adjust Balance — {{ data.partyName }}</h2>
+</div>
+
+<mat-dialog-content>
+  <form (ngSubmit)="submit()" class="form-grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Type</mat-label>
+      <mat-select [(ngModel)]="adjustmentType" name="adjustmentType">
+        @for (t of adjustmentTypes; track t.value) {
+          <mat-option [value]="t.value">{{ t.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Amount</mat-label>
+      <input matInput type="number" [(ngModel)]="amount" name="amount" required min="0" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Date</mat-label>
+      <input matInput type="date" [(ngModel)]="adjustmentDate" name="adjustmentDate" />
+    </mat-form-field>
+
+    <mat-radio-group [(ngModel)]="direction" name="direction" class="direction-group span-2">
+      <mat-radio-button value="IncreasesBalance">{{ increasesLabel }}</mat-radio-button>
+      <mat-radio-button value="DecreasesBalance">{{ decreasesLabel }}</mat-radio-button>
+    </mat-radio-group>
+
+    <mat-form-field appearance="outline" class="span-2">
+      <mat-label>Remarks{{ remarksRequired ? ' (required)' : ' (optional)' }}</mat-label>
+      <input matInput [(ngModel)]="remarks" name="remarks" [required]="remarksRequired" />
+    </mat-form-field>
+
+    <div class="form-actions span-2">
+      <button type="submit" mat-flat-button color="primary" [disabled]="saving()">
+        <mat-icon>add</mat-icon>
+        Post Adjustment
+      </button>
+    </div>
+  </form>
+
+  <h3>Existing Adjustments</h3>
+  @if (loading()) {
+    <p>Loading…</p>
+  } @else if (existing().length === 0) {
+    <p class="empty-state">No adjustments posted yet.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Number</th>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Amount</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (a of existing(); track a.id) {
+          <tr [class.cancelled-row]="a.status === 'Cancelled'">
+            <td class="mono">{{ a.adjustmentNumber }}</td>
+            <td>{{ a.adjustmentDate | date: 'mediumDate' }}</td>
+            <td>{{ typeLabel(a.adjustmentType) }}</td>
+            <td>{{ a.amount | number: '1.0-2' }}</td>
+            <td class="row-actions">
+              @if (a.status === 'Cancelled') {
+                <span class="cancelled-chip">Cancelled</span>
+              } @else {
+                <button mat-icon-button matTooltip="Cancel adjustment" (click)="cancel(a)">
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-flat-button color="primary" [mat-dialog-close]="null">Close</button>
+</mat-dialog-actions>

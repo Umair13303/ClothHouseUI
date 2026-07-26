@@ -11,6 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { environment } from '../../../../environments/environment';
 import { VariantPickerComponent, VariantSearchResult } from '../../../shared/components/variant-picker/variant-picker.component';
 import { NotificationService } from '../../../core/services/notification.service';
+import { NativeDatePickerDirective } from '../../../shared/directives/native-date-picker.directive';
 
 interface VendorDto {
   id: string;
@@ -54,7 +55,8 @@ const STATUS_LABELS: Record<InvoiceStatusValue, string> = { Draft: 'Draft', Conf
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    VariantPickerComponent
+    VariantPickerComponent,
+    NativeDatePickerDirective
   ],
   templateUrl: './purchase-invoice.component.html',
   styleUrl: './purchase-invoice.component.scss'

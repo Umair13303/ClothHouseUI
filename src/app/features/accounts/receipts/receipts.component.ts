@@ -7,8 +7,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { environment } from '../../../../environments/environment';
+import { NativeDatePickerDirective } from '../../../shared/directives/native-date-picker.directive';
 import { NotificationService } from '../../../core/services/notification.service';
+import { CancelPromptService } from '../../../core/services/cancel-prompt.service';
 
 interface CustomerDto {
   id: string;
@@ -18,6 +21,7 @@ interface CustomerDto {
 
 /** The API serializes enums by name (JsonStringEnumConverter), not by number. */
 type PaymentMethodValue = 'Cash' | 'DebitCard' | 'CreditCard' | 'BankTransfer' | 'Cheque' | 'JazzCash' | 'EasyPaisa' | 'Other';
+type MoneyDocumentStatusValue = 'Confirmed' | 'Cancelled';
 
 interface ReceiptDto {
   id: string;
@@ -28,6 +32,7 @@ interface ReceiptDto {
   method: PaymentMethodValue;
   referenceNumber: string | null;
   remarks: string | null;
+  status: MoneyDocumentStatusValue;
 }
 
 const PAYMENT_METHODS: { value: PaymentMethodValue; label: string }[] = [
@@ -44,7 +49,7 @@ const PAYMENT_METHODS: { value: PaymentMethodValue; label: string }[] = [
 @Component({
   selector: 'app-receipts',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, MatSelectModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatTooltipModule, NativeDatePickerDirective],
   templateUrl: './receipts.component.html',
   styleUrl: './receipts.component.scss'
 })
@@ -65,7 +70,7 @@ export class ReceiptsComponent implements OnInit {
   referenceNumber = '';
   remarks = '';
 
-  constructor(private http: HttpClient, private notify: NotificationService) {}
+  constructor(private http: HttpClient, private notify: NotificationService, private cancelPrompt: CancelPromptService) {}
 
   ngOnInit(): void {
     this.http.get<CustomerDto[]>(`${environment.apiUrl}/customers`).subscribe((c) => this.customers.set(c));
@@ -104,12 +109,13 @@ export class ReceiptsComponent implements OnInit {
       remarks: this.remarks || null
     };
 
-    this.http.post(this.baseUrl, payload).subscribe({
-      next: () => {
+    this.http.post<ReceiptDto>(this.baseUrl, payload).subscribe({
+      next: (created) => {
         this.notify.success('Receipt recorded successfully.');
         this.resetForm();
         this.saving.set(false);
         this.loadHistory();
+        this.printSlip(created.id);
       },
       error: (err) => {
         this.notify.error(err?.error?.error ?? 'Failed to record receipt.');
@@ -120,6 +126,26 @@ export class ReceiptsComponent implements OnInit {
 
   methodLabel(v: PaymentMethodValue): string {
     return this.paymentMethods.find((m) => m.value === v)?.label ?? '—';
+  }
+
+  /** New tab so the form/history stays where the cashier left it. */
+  printSlip(id: string): void {
+    window.open(`/accounts/receipts/print/${id}`, '_blank');
+  }
+
+  cancel(r: ReceiptDto): void {
+    this.cancelPrompt
+      .ask({ title: 'Cancel this receipt?', message: `Receipt ${r.receiptNumber} for ${r.customerName}, ${r.amount}. This restores the customer's balance and cannot be undone.` })
+      .subscribe((reason) => {
+        if (!reason) return;
+        this.http.post(`${this.baseUrl}/${r.id}/cancel`, { reason }).subscribe({
+          next: () => {
+            this.notify.success('Receipt cancelled.');
+            this.loadHistory();
+          },
+          error: (err) => this.notify.error(err?.error?.error ?? 'Failed to cancel receipt.')
+        });
+      });
   }
 
   private resetForm(): void {

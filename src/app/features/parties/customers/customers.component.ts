@@ -40,6 +40,8 @@ type CustomerForm = {
   customerType: CustomerTypeValue;
   creditLimit: number;
   isActive: boolean;
+  /** Create-only (ADR-003 B4): posted as one OpeningBalance adjustment. Ignored on edit. */
+  openingBalance: number;
 };
 
 @Component({
@@ -77,7 +79,11 @@ export class CustomersComponent implements OnInit {
   ) {}
 
   openLedger(c: CustomerDto): void {
-    this.dialog.open(LedgerDialogComponent, { width: '720px', data: { type: 'customer', id: c.id } });
+    this.dialog.open(LedgerDialogComponent, {
+      width: '95vw',
+      maxWidth: '1100px',
+      data: { type: 'customer', id: c.id }
+    });
   }
 
   ngOnInit(): void {
@@ -114,7 +120,8 @@ export class CustomersComponent implements OnInit {
       cnic: c.cnic ?? '',
       customerType: c.customerType,
       creditLimit: c.creditLimit,
-      isActive: c.isActive
+      isActive: c.isActive,
+      openingBalance: 0
     };
     this.showForm = true;
   }
@@ -158,6 +165,6 @@ export class CustomersComponent implements OnInit {
   }
 
   private emptyForm(): CustomerForm {
-    return { name: '', phone: '', email: '', address: '', cnic: '', customerType: 'Credit', creditLimit: 0, isActive: true };
+    return { name: '', phone: '', email: '', address: '', cnic: '', customerType: 'Credit', creditLimit: 0, isActive: true, openingBalance: 0 };
   }
 }

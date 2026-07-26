@@ -1,0 +1,195 @@
+<div class="page">
+  <h1>Sales Return</h1>
+  <p class="hint">
+    Returns with a receipt restore stock at the exact original cost. Returns without a receipt bring stock back at an
+    estimated cost and are flagged for the profit reports.
+  </p>
+
+  <div class="card">
+    <div class="header-row">
+      <mat-button-toggle-group [value]="mode()" (change)="mode.set($event.value)" name="mode">
+        <mat-button-toggle value="referenced">With Receipt</mat-button-toggle>
+        <mat-button-toggle value="unreferenced">Without Receipt</mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <mat-form-field appearance="outline" class="date-field">
+        <mat-label>Return Date</mat-label>
+        <input matInput type="date" [(ngModel)]="returnDate" name="returnDate" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="remarks-field">
+        <mat-label>Remarks</mat-label>
+        <input matInput [(ngModel)]="remarks" name="remarks" />
+      </mat-form-field>
+    </div>
+
+    @if (mode() === 'referenced') {
+      <div class="header-row">
+        <mat-form-field appearance="outline" class="invoice-field">
+          <mat-label>Invoice Number</mat-label>
+          <input matInput [(ngModel)]="invoiceNumber" name="invoiceNumber" (keydown.enter)="loadInvoice()" placeholder="INV-00001" />
+        </mat-form-field>
+        <button mat-stroked-button (click)="loadInvoice()" [disabled]="loadingInvoice()">
+          <mat-icon>search</mat-icon>
+          Load Invoice
+        </button>
+      </div>
+
+      @if (invoice(); as inv) {
+        <div class="invoice-summary">
+          <span class="mono">{{ inv.invoiceNumber }}</span>
+          <span>{{ inv.saleDate | date: 'mediumDate' }}</span>
+          <span>{{ inv.customerName ?? 'Walk-in customer' }}</span>
+          <span class="spacer"></span>
+          <button
+            mat-stroked-button
+            color="warn"
+            (click)="voidInvoice()"
+            [disabled]="!canVoid || voiding()"
+            [title]="canVoid ? 'Return every line and cancel the invoice' : 'This invoice already has returns against it and can no longer be voided'">
+            <mat-icon>block</mat-icon>
+            Void Entire Invoice
+          </button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Barcode</th>
+              <th>Product</th>
+              <th>Design #</th>
+              <th>Sold</th>
+              <th>Already Returned</th>
+              <th>Returnable</th>
+              <th>Return Now</th>
+              <th>Refund Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (l of referencedLines; track l.salesInvoiceItemId) {
+              <tr>
+                <td class="mono">{{ l.barcode }}</td>
+                <td>{{ l.productName }}</td>
+                <td>{{ l.designNumber }}</td>
+                <td>{{ l.soldQuantity }}</td>
+                <td>{{ l.alreadyReturned }}</td>
+                <td>{{ returnable(l) }}</td>
+                <td>
+                  <input type="number" [(ngModel)]="l.returnNow" [max]="returnable(l)" min="0" step="any" class="qty-input" />
+                </td>
+                <td>
+                  <input type="number" [(ngModel)]="l.refundPrice" [max]="l.netUnitPrice" min="0" step="any" class="qty-input" />
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="form-actions">
+          <span class="total">Refund: {{ referencedTotal | number: '1.2-2' }}</span>
+          <button mat-flat-button color="primary" [disabled]="saving()" (click)="submitReferenced()">
+            <mat-icon>assignment_return</mat-icon>
+            Post Sales Return
+          </button>
+        </div>
+      } @else {
+        <p class="empty-state">Enter an invoice number and load it to see what is returnable.</p>
+      }
+    } @else {
+      <div class="header-row">
+        <mat-form-field appearance="outline" class="invoice-field">
+          <mat-label>Customer (optional — refund goes to their account)</mat-label>
+          <mat-select [(ngModel)]="customerId" name="customerId">
+            <mat-option [value]="null">Walk-in / cash refund</mat-option>
+            @for (c of customers(); track c.id) {
+              <mat-option [value]="c.id">{{ c.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <app-variant-picker (variantSelected)="addVariant($event)" />
+
+      @if (unreferencedLines.length > 0) {
+        <table>
+          <thead>
+            <tr>
+              <th>Barcode</th>
+              <th>Product</th>
+              <th>Design #</th>
+              <th>Quantity</th>
+              <th>Refund Price</th>
+              <th>Line Refund</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (l of unreferencedLines; track l.productVariantId; let i = $index) {
+              <tr>
+                <td class="mono">{{ l.barcode }}</td>
+                <td>{{ l.productName }}</td>
+                <td>{{ l.designNumber }}</td>
+                <td>
+                  <input type="number" [(ngModel)]="l.quantity" min="0" step="any" class="qty-input" />
+                </td>
+                <td>
+                  <input type="number" [(ngModel)]="l.unitPrice" min="0" step="any" class="qty-input" />
+                </td>
+                <td>{{ l.quantity * l.unitPrice | number: '1.2-2' }}</td>
+                <td>
+                  <button mat-icon-button (click)="removeLine(i)" title="Remove line">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="form-actions">
+          <span class="total">Refund: {{ unreferencedTotal | number: '1.2-2' }}</span>
+          <button mat-flat-button color="primary" [disabled]="saving()" (click)="submitUnreferenced()">
+            <mat-icon>assignment_return</mat-icon>
+            Post Sales Return
+          </button>
+        </div>
+      } @else {
+        <p class="empty-state">Scan or search a product to start a return without a receipt.</p>
+      }
+    }
+  </div>
+
+  <h2>Recent Sales Returns</h2>
+  <div class="card">
+    @if (loadingHistory()) {
+      <p>Loading…</p>
+    } @else if (history().length === 0) {
+      <p class="empty-state">No sales returns yet.</p>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Return #</th>
+            <th>Date</th>
+            <th>Invoice</th>
+            <th>Customer</th>
+            <th>Items</th>
+            <th>Refunded</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (h of history(); track h.id) {
+            <tr>
+              <td class="mono">{{ h.returnNumber }}</td>
+              <td>{{ h.returnDate | date: 'mediumDate' }}</td>
+              <td class="mono">{{ h.salesInvoiceNumber ?? '—' }}</td>
+              <td>{{ h.customerName ?? 'Walk-in' }}</td>
+              <td>{{ h.items.length }}</td>
+              <td>{{ h.refundedAmount | number: '1.2-2' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

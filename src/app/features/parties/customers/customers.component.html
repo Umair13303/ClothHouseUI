@@ -55,6 +55,14 @@
           </mat-form-field>
         }
 
+        @if (!editingId) {
+          <mat-form-field appearance="outline">
+            <mat-label>Opening Balance</mat-label>
+            <input matInput type="number" [(ngModel)]="formModel.openingBalance" name="openingBalance" />
+            <mat-hint>Positive = customer owes this; negative = credit in their favor. Leave 0 if none.</mat-hint>
+          </mat-form-field>
+        }
+
         @if (editingId) {
           <mat-checkbox class="span-2" [(ngModel)]="formModel.isActive" name="isActive">Active</mat-checkbox>
         }

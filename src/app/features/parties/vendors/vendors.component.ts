@@ -34,6 +34,8 @@ type VendorForm = {
   address: string;
   ntn: string;
   isActive: boolean;
+  /** Create-only (ADR-003 B4): posted as one OpeningBalance adjustment. Ignored on edit. */
+  openingBalance: number;
 };
 
 @Component({
@@ -62,7 +64,11 @@ export class VendorsComponent implements OnInit {
   ) {}
 
   openLedger(v: VendorDto): void {
-    this.dialog.open(LedgerDialogComponent, { width: '720px', data: { type: 'vendor', id: v.id } });
+    this.dialog.open(LedgerDialogComponent, {
+      width: '95vw',
+      maxWidth: '1100px',
+      data: { type: 'vendor', id: v.id }
+    });
   }
 
   ngOnInit(): void {
@@ -98,7 +104,8 @@ export class VendorsComponent implements OnInit {
       email: v.email ?? '',
       address: v.address ?? '',
       ntn: v.ntn ?? '',
-      isActive: v.isActive
+      isActive: v.isActive,
+      openingBalance: 0
     };
     this.showForm = true;
   }
@@ -138,6 +145,6 @@ export class VendorsComponent implements OnInit {
   }
 
   private emptyForm(): VendorForm {
-    return { name: '', contactPerson: '', phone: '', email: '', address: '', ntn: '', isActive: true };
+    return { name: '', contactPerson: '', phone: '', email: '', address: '', ntn: '', isActive: true, openingBalance: 0 };
   }
 }
